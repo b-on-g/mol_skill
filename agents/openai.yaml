@@ -1,0 +1,4 @@
+interface:
+  display_name: "$mol"
+  short_description: "Build $mol/MAM apps, view.tree, Giper Baza"
+  default_prompt: "Help with $mol/MAM tasks: view.tree, view.ts, module structure, Giper Baza, admin patterns, Tauri."
