@@ -51,27 +51,28 @@ mam/
 ```
 
 **Важно:**
+
 - `index.html` должен лежать внутри модуля (не в корне namespace)
 - MAM автоматически генерирует `package.json` если его нет
 - Имена файлов определяют их назначение:
-  - `*.node.ts` - серверный код
-  - `*.web.ts` - браузерный код
-  - `*.test.ts` - тесты
+    - `*.node.ts` - серверный код
+    - `*.web.ts` - браузерный код
+    - `*.test.ts` - тесты
 
 ### Точка входа (index.html)
 
 ```html
 <!doctype html>
 <html mol_view_root>
-  <head>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <meta name="mobile-web-app-capable" content="yes"/>
-  </head>
-  <body mol_view_root>
-    <div mol_view_root="$my_survey_app"></div>
-    <script src="web.js"></script>
-  </body>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="mobile-web-app-capable" content="yes" />
+	</head>
+	<body mol_view_root>
+		<div mol_view_root="$my_survey_app"></div>
+		<script src="web.js"></script>
+	</body>
 </html>
 ```
 
@@ -111,9 +112,9 @@ const { equals } = await $mol_import.module('https://esm.sh/ramda')
 
 ```json
 {
-  "dependencies": {
-    "lodash": "^4.17.21"
-  }
+	"dependencies": {
+		"lodash": "^4.17.21"
+	}
 }
 ```
 
@@ -124,6 +125,8 @@ MAM объединит его с автоматически сгенериров
 ## 3. Синтаксис view.tree
 
 ### Основы
+
+в $mol все `view` по умолчанию — `flex` в строку из за этого блоки могут растягиватся и расползаться
 
 `view.tree` - декларативный язык для описания компонентов:
 
@@ -187,7 +190,7 @@ $my_page $mol_page
         <= ToolButton $mol_button
 
 $my_page_simple $my_page
-    ToolButton null  
+    ToolButton null
 ```
 
 Присвоение `null` исключает компонент из рендеринга.
@@ -219,14 +222,14 @@ cd my/hello
 ```html
 <!doctype html>
 <html mol_view_root>
-  <head>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  </head>
-  <body mol_view_root>
-    <div mol_view_root="$my_hello"></div>
-    <script src="web.js"></script>
-  </body>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+	</head>
+	<body mol_view_root>
+		<div mol_view_root="$my_hello"></div>
+		<script src="web.js"></script>
+	</body>
 </html>
 ```
 
@@ -250,15 +253,13 @@ $my_hello $mol_page
 
 ```typescript
 namespace $.$$ {
-    export class $my_hello extends $.$my_hello {
-        
-        @$mol_mem
-        greeting() {
-            const name = this.name()
-            return name ? `Hello, ${name}!` : 'Please enter your name'
-        }
-        
-    }
+	export class $my_hello extends $.$my_hello {
+		@$mol_mem
+		greeting() {
+			const name = this.name()
+			return name ? `Hello, ${name}!` : 'Please enter your name'
+		}
+	}
 }
 ```
 
@@ -266,16 +267,16 @@ namespace $.$$ {
 
 ```typescript
 namespace $.$$ {
-    $mol_style_define($my_hello, {
-        Message: {
-            padding: $mol_gap.block,
-            font: {
-                size: '1.5rem',
-                weight: 'bold',
-            },
-            color: $mol_theme.accent,
-        }
-    })
+	$mol_style_define($my_hello, {
+		Message: {
+			padding: $mol_gap.block,
+			font: {
+				size: '1.5rem',
+				weight: 'bold',
+			},
+			color: $mol_theme.accent,
+		},
+	})
 }
 ```
 
@@ -293,18 +294,16 @@ npm start my/hello
 
 ```typescript
 namespace $.$$ {
-    $mol_test({
-        
-        'Generates greeting for name'() {
-            const app = new $my_hello()
-            
-            $mol_assert_equal(app.greeting(), 'Please enter your name')
-            
-            app.name('Alice')
-            $mol_assert_equal(app.greeting(), 'Hello, Alice!')
-        }
-        
-    })
+	$mol_test({
+		'Generates greeting for name'() {
+			const app = new $my_hello()
+
+			$mol_assert_equal(app.greeting(), 'Please enter your name')
+
+			app.name('Alice')
+			$mol_assert_equal(app.greeting(), 'Hello, Alice!')
+		},
+	})
 }
 ```
 
@@ -332,7 +331,7 @@ namespace $.$$ {
 <= Email $mol_string
     hint @ \Email
     value? <=> email? \
-    
+
 <= Age $mol_number
     hint @ \Age
     value? <=> age? 0
@@ -437,18 +436,16 @@ $my_table $mol_grid
 
 ```typescript
 namespace $ {
-    export class $my_person extends $giper_baza_entity.with({
-        Email: $giper_baza_atom_text,
-        Age: $giper_baza_atom_bint,
-        Friends: $giper_baza_list_link_to(() => $my_person),
-    }) {
-        
-        is_adult() {
-            const age = this.Age()?.val()
-            return age !== null && age >= 18n
-        }
-        
-    }
+	export class $my_person extends $giper_baza_entity.with({
+		Email: $giper_baza_atom_text,
+		Age: $giper_baza_atom_bint,
+		Friends: $giper_baza_list_link_to(() => $my_person),
+	}) {
+		is_adult() {
+			const age = this.Age()?.val()
+			return age !== null && age >= 18n
+		}
+	}
 }
 ```
 
@@ -456,24 +453,22 @@ namespace $ {
 
 ```typescript
 namespace $.$$ {
-    export class $my_app extends $.$my_app {
-        
-        @$mol_mem
-        current_user() {
-            return this.glob().home().land().Node($my_person).Data()
-        }
-        
-        @$mol_mem
-        user_email() {
-            return this.current_user().Email()?.val() ?? ''
-        }
-        
-        @$mol_action
-        user_email(next: string) {
-            this.current_user().Email(null)!.val(next)
-        }
-        
-    }
+	export class $my_app extends $.$my_app {
+		@$mol_mem
+		current_user() {
+			return this.glob().home().land().Node($my_person).Data()
+		}
+
+		@$mol_mem
+		user_email() {
+			return this.current_user().Email()?.val() ?? ''
+		}
+
+		@$mol_action
+		user_email(next: string) {
+			this.current_user().Email(null)!.val(next)
+		}
+	}
 }
 ```
 
@@ -487,22 +482,20 @@ namespace $.$$ {
 
 ```typescript
 export class $my_counter extends $.$my_counter {
-    
-    @$mol_mem
-    count() {
-        return 0
-    }
-    
-    @$mol_action
-    increment() {
-        this.count(this.count() + 1)
-    }
-    
-    @$mol_mem
-    doubled() {
-        return this.count() * 2  // Автоматически обновится
-    }
-    
+	@$mol_mem
+	count() {
+		return 0
+	}
+
+	@$mol_action
+	increment() {
+		this.count(this.count() + 1)
+	}
+
+	@$mol_mem
+	doubled() {
+		return this.count() * 2 // Автоматически обновится
+	}
 }
 ```
 
@@ -532,14 +525,14 @@ $my_users_list $mol_list
 
 ### $mol vs React/Angular
 
-| Аспект | $mol | React | Angular |
-|--------|------|-------|---------|
-| **Размер бандла** | ~100KB | ~300KB+ | ~500KB+ |
-| **Виртуальный DOM** | Нет | Да | Нет |
-| **Реактивность** | Автоматическая | Ручная (hooks) | RxJS |
-| **Роутинг** | Встроен | Внешний | Встроен |
-| **Стили** | Типизированные | CSS-in-JS | CSS/SCSS |
-| **Подход** | Декларативный | Функциональный | Объектно-ориентированный |
+| Аспект              | $mol           | React          | Angular                  |
+| ------------------- | -------------- | -------------- | ------------------------ |
+| **Размер бандла**   | ~100KB         | ~300KB+        | ~500KB+                  |
+| **Виртуальный DOM** | Нет            | Да             | Нет                      |
+| **Реактивность**    | Автоматическая | Ручная (hooks) | RxJS                     |
+| **Роутинг**         | Встроен        | Внешний        | Встроен                  |
+| **Стили**           | Типизированные | CSS-in-JS      | CSS/SCSS                 |
+| **Подход**          | Декларативный  | Функциональный | Объектно-ориентированный |
 
 #### Преимущества $mol:
 
@@ -552,24 +545,26 @@ $my_users_list $mol_list
 #### Пример сравнения
 
 **React:**
+
 ```tsx
 function Counter() {
-  const [count, setCount] = useState(0)
-  
-  useEffect(() => {
-    document.title = `Count: ${count}`
-  }, [count])
-  
-  return (
-    <div>
-      <p>Count: {count}</p>
-      <button onClick={() => setCount(count + 1)}>+</button>
-    </div>
-  )
+	const [count, setCount] = useState(0)
+
+	useEffect(() => {
+		document.title = `Count: ${count}`
+	}, [count])
+
+	return (
+		<div>
+			<p>Count: {count}</p>
+			<button onClick={() => setCount(count + 1)}>+</button>
+		</div>
+	)
 }
 ```
 
 **$mol:**
+
 ```tree
 $my_counter $mol_view
     sub /
@@ -582,10 +577,14 @@ $my_counter $mol_view
 
 ```typescript
 namespace $.$$ {
-    export class $my_counter extends $.$my_counter {
-        @$mol_mem count() { return 0 }
-        @$mol_action increment() { this.count(this.count() + 1) }
-    }
+	export class $my_counter extends $.$my_counter {
+		@$mol_mem count() {
+			return 0
+		}
+		@$mol_action increment() {
+			this.count(this.count() + 1)
+		}
+	}
 }
 ```
 
@@ -626,19 +625,17 @@ my/project/
 
 ```typescript
 export class $my_form extends $.$my_form {
-    
-    // Геттер + сеттер
-    @$mol_mem
-    name(next?: string) {
-        if (next !== undefined) {
-            // Валидация
-            if (!next.trim()) throw new Error('Name required')
-            // Сохранение
-            this.user().Name(null)!.val(next)
-        }
-        return this.user().Name()?.val() ?? ''
-    }
-    
+	// Геттер + сеттер
+	@$mol_mem
+	name(next?: string) {
+		if (next !== undefined) {
+			// Валидация
+			if (!next.trim()) throw new Error('Name required')
+			// Сохранение
+			this.user().Name(null)!.val(next)
+		}
+		return this.user().Name()?.val() ?? ''
+	}
 }
 ```
 
@@ -646,24 +643,24 @@ export class $my_form extends $.$my_form {
 
 ```typescript
 $mol_style_define($my_card, {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: $mol_gap.block,
-    padding: $mol_gap.block,
-    background: {
-        color: $mol_theme.card,
-    },
-    border: {
-        radius: $mol_gap.round,
-    },
-    
-    // Вложенные элементы
-    Title: {
-        font: {
-            size: '1.25rem',
-            weight: 'bold',
-        },
-    },
+	display: 'flex',
+	flexDirection: 'column',
+	gap: $mol_gap.block,
+	padding: $mol_gap.block,
+	background: {
+		color: $mol_theme.card,
+	},
+	border: {
+		radius: $mol_gap.round,
+	},
+
+	// Вложенные элементы
+	Title: {
+		font: {
+			size: '1.25rem',
+			weight: 'bold',
+		},
+	},
 })
 ```
 
@@ -671,31 +668,26 @@ $mol_style_define($my_card, {
 
 ```typescript
 $mol_test({
-    
-    'User email validation'() {
-        const app = new $my_app()
-        
-        // Успешная валидация
-        app.user_email('test@example.com')
-        $mol_assert_equal(app.user_email(), 'test@example.com')
-        
-        // Неуспешная валидация
-        $mol_assert_fail(
-            () => app.user_email('invalid'),
-            'Invalid email'
-        )
-    },
-    
-    'Task creation'() {
-        const app = new $my_app()
-        const before = app.tasks().length
-        
-        app.task_add('New task')
-        
-        $mol_assert_equal(app.tasks().length, before + 1)
-        $mol_assert_equal(app.tasks()[0].Title()?.val(), 'New task')
-    },
-    
+	'User email validation'() {
+		const app = new $my_app()
+
+		// Успешная валидация
+		app.user_email('test@example.com')
+		$mol_assert_equal(app.user_email(), 'test@example.com')
+
+		// Неуспешная валидация
+		$mol_assert_fail(() => app.user_email('invalid'), 'Invalid email')
+	},
+
+	'Task creation'() {
+		const app = new $my_app()
+		const before = app.tasks().length
+
+		app.task_add('New task')
+
+		$mol_assert_equal(app.tasks().length, before + 1)
+		$mol_assert_equal(app.tasks()[0].Title()?.val(), 'New task')
+	},
 })
 ```
 
@@ -703,22 +695,20 @@ $mol_test({
 
 ```typescript
 export class $my_form extends $.$my_form {
-    
-    @$mol_mem
-    error() {
-        try {
-            this.validate()
-            return ''
-        } catch (error) {
-            return String(error)
-        }
-    }
-    
-    validate() {
-        if (!this.name()) throw new Error('Name required')
-        if (!this.email()) throw new Error('Email required')
-    }
-    
+	@$mol_mem
+	error() {
+		try {
+			this.validate()
+			return ''
+		} catch (error) {
+			return String(error)
+		}
+	}
+
+	validate() {
+		if (!this.name()) throw new Error('Name required')
+		if (!this.email()) throw new Error('Email required')
+	}
 }
 ```
 
@@ -726,16 +716,14 @@ export class $my_form extends $.$my_form {
 
 ```typescript
 export class $my_data_loader extends $.$my_data_loader {
-    
-    @$mol_mem
-    async data() {
-        const response = await fetch('/api/data')
-        return await response.json()
-    }
-    
-    // В UI автоматически показывается loader
-    // пока промис не разрешится
-    
+	@$mol_mem
+	async data() {
+		const response = await fetch('/api/data')
+		return await response.json()
+	}
+
+	// В UI автоматически показывается loader
+	// пока промис не разрешится
 }
 ```
 
@@ -748,6 +736,7 @@ export class $my_data_loader extends $.$my_data_loader {
 **Giper Baza** - распределённая CRDT-база данных с автоматической синхронизацией.
 
 **Основные концепции:**
+
 - **Glob** - глобальная база
 - **Land** - раздел с правами
 - **Node** - узел данных
@@ -757,19 +746,17 @@ export class $my_data_loader extends $.$my_data_loader {
 
 ```typescript
 namespace $.$$ {
-    export class $my_app extends $.$my_app {
-        
-        @$mol_mem
-        glob() {
-            return new $giper_baza_glob()
-        }
-        
-        @$mol_mem
-        current_user() {
-            return this.glob().home().land().Node($my_user).Data()
-        }
-        
-    }
+	export class $my_app extends $.$my_app {
+		@$mol_mem
+		glob() {
+			return new $giper_baza_glob()
+		}
+
+		@$mol_mem
+		current_user() {
+			return this.glob().home().land().Node($my_user).Data()
+		}
+	}
 }
 ```
 
@@ -779,17 +766,15 @@ namespace $.$$ {
 
 ```typescript
 namespace $ {
-    export class $my_task extends $giper_baza_entity.with({
-        Done: $giper_baza_atom_bool,
-        CreatedAt: $giper_baza_atom_time,
-    }) {
-        
-        toggle() {
-            const done = this.Done()?.val() ?? false
-            this.Done(null)!.val(!done)
-        }
-        
-    }
+	export class $my_task extends $giper_baza_entity.with({
+		Done: $giper_baza_atom_bool,
+		CreatedAt: $giper_baza_atom_time,
+	}) {
+		toggle() {
+			const done = this.Done()?.val() ?? false
+			this.Done(null)!.val(!done)
+		}
+	}
 }
 ```
 
@@ -821,64 +806,62 @@ $my_todo_app $mol_page
 
 ```typescript
 namespace $.$$ {
-    export class $my_todo_app extends $.$my_todo_app {
-        
-        @$mol_mem
-        tasks_list() {
-            return this.current_user().Tasks(null)!
-        }
-        
-        @$mol_mem
-        tasks() {
-            return this.tasks_list().remote_list()
-        }
-        
-        @$mol_mem
-        task_ids() {
-            return this.tasks().map(t => t.link().toString())
-        }
-        
-        @$mol_mem_key
-        task(id: string) {
-            return this.tasks().find(t => t.link().toString() === id)!
-        }
-        
-        @$mol_mem_key
-        task_title(id: string) {
-            return this.task(id).Title()?.val() ?? ''
-        }
-        
-        @$mol_mem_key
-        task_done(id: string, next?: boolean) {
-            const task = this.task(id)
-            if (next !== undefined) {
-                task.Done(null)!.val(next)
-            }
-            return task.Done()?.val() ?? false
-        }
-        
-        @$mol_action
-        task_add() {
-            const title = this.new_task().trim()
-            if (!title) return
-            
-            const preset = [[null, $giper_baza_rank_read]]
-            const task = this.tasks_list().make(preset)!
-            
-            task.Title(null)!.val(title)
-            task.Done(null)!.val(false)
-            task.CreatedAt(null)!.val(new $mol_time_moment())
-            
-            this.new_task('')
-        }
-        
-        @$mol_action
-        task_remove(id: string) {
-            const task = this.task(id)
-            this.tasks_list().cut(task.link())
-        }
-        
-    }
+	export class $my_todo_app extends $.$my_todo_app {
+		@$mol_mem
+		tasks_list() {
+			return this.current_user().Tasks(null)!
+		}
+
+		@$mol_mem
+		tasks() {
+			return this.tasks_list().remote_list()
+		}
+
+		@$mol_mem
+		task_ids() {
+			return this.tasks().map(t => t.link().toString())
+		}
+
+		@$mol_mem_key
+		task(id: string) {
+			return this.tasks().find(t => t.link().toString() === id)!
+		}
+
+		@$mol_mem_key
+		task_title(id: string) {
+			return this.task(id).Title()?.val() ?? ''
+		}
+
+		@$mol_mem_key
+		task_done(id: string, next?: boolean) {
+			const task = this.task(id)
+			if (next !== undefined) {
+				task.Done(null)!.val(next)
+			}
+			return task.Done()?.val() ?? false
+		}
+
+		@$mol_action
+		task_add() {
+			const title = this.new_task().trim()
+			if (!title) return
+
+			const preset = [[null, $giper_baza_rank_read]]
+			const task = this.tasks_list().make(preset)!
+
+			task.Title(null)!.val(title)
+			task.Done(null)!.val(false)
+			task.CreatedAt(null)!.val(new $mol_time_moment())
+
+			this.new_task('')
+		}
+
+		@$mol_action
+		task_remove(id: string) {
+			const task = this.task(id)
+			this.tasks_list().cut(task.link())
+		}
+	}
 }
 ```
 
@@ -902,6 +885,7 @@ open http://localhost:9080/my/app/-/web.audit.js
 ```
 
 Этот файл содержит диагностическую информацию:
+
 - Предупреждения компилятора
 - Неиспользуемые зависимости
 - Проблемы с типами
@@ -922,6 +906,7 @@ open http://localhost:9080/my/app/-/web.audit.js
 **Причина**: Метод не помечен `@$mol_mem`
 
 **Решение**:
+
 ```typescript
 // Было
 user_name() {
