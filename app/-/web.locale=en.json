@@ -1,0 +1,13 @@
+{
+	"$giper_bot_Context_title": "Summary",
+	"$giper_bot_Prompt_submit_hint": "Send",
+	"$giper_bot_Prompt_text_hint": "Ask Giper Bot...",
+	"$giper_bot_Reset_hint": "Reset",
+	"$giper_bot_dialog_title": "Giper Bot",
+	"$mol_lights_toggle_hint": "Toggle lights",
+	"$mol_link_donate_hint": "Thank with a dollar",
+	"$mol_link_source_hint": "Source code",
+	"$mol_link_support_hint": "Discuss the project",
+	"$mol_text_code_Copy_hint": "Copy whole code",
+	"$mol_text_header_Link_hint": "Permalink to this section"
+}

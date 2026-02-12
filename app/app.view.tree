@@ -1,0 +1,289 @@
+$bog_mol_app $giper_bot
+	dialog_title? \FAQ Bot
+	Context $mol_page
+		title \База знаний
+		tools /
+			<= Reset $mol_button_minor
+				hint \Сбросить диалог
+				click? <=> reset? null
+				sub /
+					<= Reset_icon $mol_icon_trash_can_outline
+			<= Lights $mol_lights_toggle
+		body /
+			<= Digest $mol_text
+				text <= digest? \
+			<= Faq $mol_list rows /
+				<= Faq_section_chat $mol_expander
+					title \Из чатов разработчиков
+					content /
+						<= Faq_start $mol_expander
+							title \Как запустить Giper Baza?
+							content / <= Faq_start_text $mol_text text \
+								\`npm start`, затем в том же процессе:
+								\```
+								\giper/baza/app/run port=9090
+								\```
+								\— Дим
+						<= Faq_npm $mol_expander
+							title \Как интегрировать npm-модуль?
+							content / <= Faq_npm_text $mol_text text \
+								\**1. Через стабы** — `const pdfjs = lib_pdfjs`
+								\[Пример](https://github.com/hyoo-ru/mam_lib/blob/master/pdfjs/pdfjs.ts)
+								\
+								\**2. Через meta.tree** — если модуль криво бандлится:
+								\[yuf/fflate](https://github.com/zerkalica/yuf/tree/master/fflate)
+								\```
+								\build yuf_fflate_npm_build node ./.npm/.build.mjs
+								\```
+								\— Sergey Yuferev
+						<= Faq_local $mol_expander
+							title \Как сохранить в localStorage?
+							content / <= Faq_local_text $mol_text text \
+								\```
+								\mol_state_local.value( key, value )
+								\```
+								\Реактивный аналог localStorage. Значения сериализуются в JSON.
+						<= Faq_cdn $mol_expander
+							title \Можно ли подключить mol через CDN?
+							content / <= Faq_cdn_text $mol_text text \
+								\**Нет.** mol необходим MAM и TypeScript. Нужен сборщик.
+								\
+								\> «Накостылять на коленке — это не к нам точно.» — Дим
+								\
+								\Vue — один файл ~40KB. mol — 250+ модулей
+								\с автообнаружением зависимостей и кастомной сборкой.
+						<= Faq_forms $mol_expander
+							title \Аналог React Hook Form + Zod?
+							content / <= Faq_forms_text $mol_text text \
+								\`mol_form` + `mol_form_field`. Вместо схем — реактивные геттеры `*_bid()`:
+								\```
+								\name_bid() {
+								\  if( !this.name() ) return 'Обязательное поле'
+								\  return ''
+								\}
+								\```
+								\`bid` = Bad Input Data. Пустая строка = валидно.
+								\Есть `mol_form_draft` с undo/reset.
+						<= Faq_tables $mol_expander
+							title \Таблицы как TanStack Table?
+							content / <= Faq_tables_text $mol_text text \
+								\`mol_grid` — проще TanStack. Есть виртуальный скролл (100K строк),
+								\иерархия, автоопределение типов. Нет сортировки, фильтрации, ресайза из коробки.
+								\[calc.hyoo.ru](https://calc.hyoo.ru/)
+						<= Faq_reuse $mol_expander
+							title \Переиспользование компонентов?
+							content / <= Faq_reuse_text $mol_text text \
+								\Каждый компонент имеет уникальное FQN. Можно взять из любого проекта по имени.
+								\> «Каждое слово в tree — точка расширения» — Sergey Yuferev
+						<= Faq_custom $mol_expander
+							title \Как кастомизировать компонент?
+							content / <= Faq_custom_text $mol_text text \
+								\Каждое свойство в view.tree — точка расширения.
+								\Перебивается в наследнике или при создании экземпляра.
+								\[Пример слота](https://github.com/zerkalica/yuf/blob/20d2992d99aa69f036e5eb5869b7b3a931e396ab/catalog/app/app.view.tree#L27)
+						<= Faq_css $mol_expander
+							title \Переиспользование стилей в CSS-in-TS?
+							content / <= Faq_css_text $mol_text text \
+								\Обычный TypeScript — переменные и spread:
+								\```
+								\const shared: mol_style_properties = { display: 'grid' }
+								\RangeItem: { ...shared },
+								\```
+								\Лучше выделить общий компонент. — Дим
+						<= Faq_zip $mol_expander
+							title \ZIP-архивы в mol?
+							content / <= Faq_zip_text $mol_text text \
+								\[yuf/fflate](https://github.com/zerkalica/yuf/blob/master/fflate/fflate.ts)
+								\Билдится прозрачно, грузится динамически. — Sergey Yuferev
+						<= Faq_seo $mol_expander
+							title \SEO для Giper Baza?
+							content / <= Faq_seo_text $mol_text text \
+								\[prelander](https://github.com/koplenov/prelander/) — индексация контента.
+								\Или prerender-сервер: Chrome headless + Express + prerender-node.
+						<= Faq_builds $mol_expander
+							title \Воспроизводимые сборки?
+							content / <= Faq_builds_text $mol_text text \
+								\[yuf/depser](https://github.com/zerkalica/yuf/blob/master/depser/depser)
+								\Снепшотит зависимости через сабмодули. — Sergey Yuferev
+						<= Faq_template $mol_expander
+							title \Шаблон проекта для старта?
+							content / <= Faq_template_text $mol_text text \
+								\[richtemplate](https://github.com/Lyumih/richtemplate) — рекомендуется по умолчанию.
+						<= Faq_colors $mol_expander
+							title \Система цветов / тем?
+							content / <= Faq_colors_text $mol_text text \
+								\**default** — базовые, **base** — бренд, **special** — по вкусу,
+								\**current** — ярче (выделение), **accent** — ещё ярче (ошибки). — Дим
+						<= Faq_versioning $mol_expander
+							title \Версионирование в mol?
+							content / <= Faq_versioning_text $mol_text text \
+								\**Versionless** — нет мажорных версий. Обратная совместимость.
+								\Можно зафиксировать, спулив до коммита. Зависимостей минимум (1-2).
+				<= Faq_section_quickstart $mol_expander
+					title \Быстрый старт
+					content /
+						<= Faq_setup $mol_expander
+							title \Как установить и запустить проект?
+							content / <= Faq_setup_text $mol_text text \
+								\```bash
+								\git clone https://github.com/hyoo-ru/mam.git ./mam && cd mam
+								\npm install && npm start
+								\```
+								\Откроется на `http://localhost:9080/`. MAM отслеживает изменения автоматически.
+						<= Faq_structure $mol_expander
+							title \Структура проекта?
+							content / <= Faq_structure_text $mol_text text \
+								\```
+								\mam/my/app/
+								\  index.html       — точка входа
+								\  app.view.tree    — декларативная вёрстка
+								\  app.view.ts      — логика компонента
+								\  app.view.css.ts  — типизированные стили
+								\  app.meta.tree    — мета-настройки
+								\```
+								\Имена файлов определяют назначение:
+								\`*.node.ts` — сервер, `*.web.ts` — браузер, `*.test.ts` — тесты.
+						<= Faq_viewtree $mol_expander
+							title \Синтаксис view.tree?
+							content / <= Faq_viewtree_text $mol_text text \
+								\`<=` — односторонняя привязка, `<=>` — двусторонняя,
+								\`/` — список, `*` — словарь, `@` — локализация, `\\` — строка.
+								\```
+								\mol_page
+								\  title <= app_title @ My App
+								\  body /
+								\    <= Name mol_string
+								\      value? <=> name?
+								\```
+						<= Faq_reactivity $mol_expander
+							title \Реактивность в mol?
+							content / <= Faq_reactivity_text $mol_text text \
+								\`@mol_mem` — кэшированное свойство (авто-обновляется).
+								\`@mol_mem_key` — то же, с параметром.
+								\`@mol_action` — модификация состояния.
+								\```
+								\@mol_mem count() { return 0 }
+								\@mol_action increment() { this.count( this.count() + 1 ) }
+								\```
+						<= Faq_components $mol_expander
+							title \Встроенные компоненты?
+							content / <= Faq_components_text $mol_text text \
+								\Кнопки: `mol_button_major`, `mol_button_minor`
+								\Ввод: `mol_string`, `mol_number`, `mol_textarea`
+								\Списки: `mol_list`, `mol_grid`
+								\Формы: `mol_form`, `mol_form_field`
+								\Выбор: `mol_select`, `mol_switch`, `mol_check`
+								\Страницы: `mol_page`, `mol_book2`
+								\Календарь: `mol_calendar`
+						<= Faq_differences $mol_expander
+							title \Отличия от React/Angular?
+							content / <= Faq_differences_text $mol_text text \
+								\**Реактивность** — автоматическая (не нужны useState, useEffect).
+								\**Ленивость** — компоненты создаются при необходимости.
+								\**Размер** — ~100KB vs React ~300KB+ vs Angular ~500KB+.
+								\**Стили** — типизированные, проверяются TypeScript.
+								\В 3 раза меньше кода чем React+Redux+Router.
+				<= Faq_section_giper $mol_expander
+					title \Giper Baza
+					content /
+						<= Faq_giper_what $mol_expander
+							title \Что такое Giper Baza?
+							content / <= Faq_giper_what_text $mol_text text \
+								\Распределённая CRDT-база: offline-first, криптографическая авторизация,
+								\автосинхронизация, merge без конфликтов, zero trust.
+								\
+								\Статьи: [habr/943606](https://habr.com/ru/articles/943606/),
+								\[habr/956154](https://habr.com/ru/articles/956154/)
+						<= Faq_giper_arch $mol_expander
+							title \Архитектура Giper Baza?
+							content / <= Faq_giper_arch_text $mol_text text \
+								\```
+								\Glob (глобальная БД)
+								\ └─ Land (раздел с правами)
+								\   └─ Node (узел данных)
+								\     └─ Unit (ребро графа)
+								\```
+								\Типы: `atom_text`, `atom_bint`, `atom_real`, `atom_time`,
+								\`list_str`, `list_link_to`, `dict`, `dict_to`.
+						<= Faq_giper_auth $mol_expander
+							title \Аутентификация в Giper Baza?
+							content / <= Faq_giper_auth_text $mol_text text \
+								\Криптографическая: Auth (приватный ключ), Pass (публичный),
+								\Lord (ID пользователя). Proof-of-Work для регистрации.
+								\Не нужны логины/пароли — ключи генерируются автоматически.
+						<= Faq_giper_roles $mol_expander
+							title \Права и роли?
+							content / <= Faq_giper_roles_text $mol_text text \
+								\Уровни (Tier): deny, read, post, pull, rule.
+								\Права задаются на уровне Land через пресеты:
+								\```
+								\const land = glob.land_grab([
+								\  [null, giper_baza_rank_read],
+								\  [myPass, giper_baza_rank_rule],
+								\])
+								\```
+						<= Faq_giper_crud $mol_expander
+							title \CRUD в Giper Baza?
+							content / <= Faq_giper_crud_text $mol_text text \
+								\Модель:
+								\```
+								\class MyTask extends giper_baza_entity.with({
+								\  Done: giper_baza_atom_bool,
+								\  CreatedAt: giper_baza_atom_time,
+								\}) {}
+								\```
+								\Создание: `list.make(preset)`, чтение: `.Title()?.val()`,
+								\обновление: `.Title(null)!.val(next)`, удаление: `list.cut(link)`.
+						<= Faq_giper_sync $mol_expander
+							title \Синхронизация?
+							content / <= Faq_giper_sync_text $mol_text text \
+								\Автоматическая. Данные пишутся локально, синкаются при наличии сети.
+								\Ноды на сервере реплицируют данные. UI обновляется автоматически.
+								\Можно развернуть доп. ноды для масштабирования.
+				<= Faq_section_admin $mol_expander
+					title \Админка на Giper Baza
+					content /
+						<= Faq_admin_arch $mol_expander
+							title \Архитектура админки?
+							content / <= Faq_admin_arch_text $mol_text text \
+								\```
+								\UI → Application Logic → Storage → Models → giper_baza_glob
+								\```
+								\Модули: app/, storage/, role/, entity/, card/, list/.
+						<= Faq_admin_roles $mol_expander
+							title \Роли в админке?
+							content / <= Faq_admin_roles_text $mol_text text \
+								\Роли: admin, editor, viewer. Каждая с набором разрешений.
+								\Проверка через `role.check_permission()`.
+								\Права на уровне данных через Giper Baza Land.
+						<= Faq_admin_entity $mol_expander
+							title \Модели сущностей?
+							content / <= Faq_admin_entity_text $mol_text text \
+								\Базовая сущность: Title, CreatedAt, UpdatedAt, CreatedBy, Status.
+								\Soft delete и архивирование. Наследуйте от базовой модели.
+				<= Faq_section_tauri $mol_expander
+					title \Tauri (десктоп)
+					content /
+						<= Faq_tauri_setup $mol_expander
+							title \Как настроить Tauri?
+							content / <= Faq_tauri_setup_text $mol_text text \
+								\1. Установить prerequisites (Xcode/MSVC/libwebkit)
+								\2. Установить Rust: `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`
+								\3. `npm install` в MAM
+								\4. Dev: `npm start` + `npx tauri dev` в отдельном терминале
+						<= Faq_tauri_build $mol_expander
+							title \Сборка Tauri?
+							content / <= Faq_tauri_build_text $mol_text text \
+								\1. Собрать mol: `npm start bog/quiz` → Ctrl+C
+								\2. Собрать Tauri: `npx tauri build`
+								\3. CI/CD через GitHub Actions для Linux/Windows/macOS.
+				<= Faq_section_docs $mol_expander
+					title \Документация и ссылки
+					content /
+						<= Faq_docs $mol_expander
+							title \Где найти документацию?
+							content / <= Faq_docs_text $mol_text text \
+								\- [mol.hyoo.ru](https://mol.hyoo.ru/#!section=docs) — основная дока
+								\- [github.com/hyoo-ru](https://github.com/hyoo-ru) — GitHub
+								\- Телеграм-чат разработчиков — лучший источник ответов
+								\- [richtemplate](https://github.com/Lyumih/richtemplate) — шаблон для старта
