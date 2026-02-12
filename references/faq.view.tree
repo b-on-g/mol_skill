@@ -1,0 +1,244 @@
+$piterjs_faq $mol_page
+	title \$mol FAQ
+	body /
+		<= Items $mol_list rows /
+			<= Start $mol_expander
+				title \Как запустить Giper Baza?
+				content /
+					<= Start_text $mol_text text \
+						\Сначала `npm start`, затем в том же процессе:
+						\
+						\```
+						\giper/baza/app/run port=9090
+						\```
+						\
+						\— Дим
+			<= Npm_integration $mol_expander
+				title \Как интегрировать npm-модуль в $mol?
+				content /
+					<= Npm_integration_text $mol_text text \
+						\Есть несколько способов:
+						\
+						\**1. Через стабы (простой способ)**
+						\
+						\По аналогии с pdfjs: `const pdfjs = $lib_pdfjs`.
+						\Пример: [lib/pdfjs](https://github.com/hyoo-ru/mam_lib/blob/master/pdfjs/pdfjs.ts)
+						\
+						\**2. Через meta.tree (если модуль криво бандлится или нужна динамическая подгрузка)**
+						\
+						\Пример интеграции fflate:
+						\[yuf/fflate](https://github.com/zerkalica/yuf/tree/master/fflate)
+						\
+						\В `meta.tree` указывается кастомный билд:
+						\```
+						\build $yuf_fflate_npm_build \\node ./.npm/.build.mjs
+						\```
+						\
+						\Это нужно, если $mol криво бандлит npm-модуль из коробки,
+						\нужно динамически его подгружать, или нужно зависимости зафиксить.
+						\
+						\— Sergey Yuferev
+			<= Local_storage $mol_expander
+				title \Как сохранить данные в localStorage?
+				content /
+					<= Local_storage_text $mol_text text \
+						\```
+						\$mol_state_local.value( key, value )
+						\```
+						\
+						\Это реактивный аналог `localStorage`. Принимает ключ и значение.
+						\Значения сериализуются в JSON автоматически.
+			<= Cdn $mol_expander
+				title \Можно ли подключить $mol через CDN как Vue?
+				content /
+					<= Cdn_text $mol_text text \
+						\**Нет.** $mol — тяжеловесная система, которой необходим MAM и TypeScript.
+						\Просто ссылкой подключить не получится, нужен сборщик.
+						\
+						\> «Накостылять на коленке — это не к нам точно.»
+						\> — Дим
+						\
+						\> «Мол тяжеловесная неповоротливая фигня которой необходим MAM и TS, так не выйдет.»
+						\> — Юра Петров
+						\
+						\Vue может работать через CDN потому что это один самодостаточный файл (~40KB).
+						\$mol — это 250+ модулей с автообнаружением зависимостей,
+						\специальными форматами файлов (.view.tree, .css.ts) и кастомной сборкой.
+						\Для CDN пришлось бы либо собрать всё в один огромный бандл (~5-10MB),
+						\либо написать рантайм-загрузчик модулей.
+			<= Forms $mol_expander
+				title \Есть ли в $mol аналог React Hook Form + Zod?
+				content /
+					<= Forms_text $mol_text text \
+						\Да, но подход другой. Используется `$mol_form` + `$mol_form_field`.
+						\
+						\Вместо декларативных схем (Zod) — **реактивные геттеры** `*_bid()`:
+						\
+						\```
+						\name_bid() {
+						\  if( !this.name() ) return 'Обязательное поле'
+						\  if( this.name().includes(' ') ) return 'Без пробелов'
+						\  return ''
+						\}
+						\```
+						\
+						\`bid` = Bad Input Data. Пустая строка = валидно, непустая = ошибка.
+						\
+						\Форма автоматически блокирует Submit пока есть ошибки.
+						\Валидация пересчитывается реактивно при изменении данных.
+						\
+						\Дополнительно есть `$mol_form_draft` — форма с undo/reset и трекингом изменений.
+			<= Tables $mol_expander
+				title \Есть ли в $mol таблицы как TanStack Table?
+				content /
+					<= Tables_text $mol_text text \
+						\Есть `$mol_grid` — но он значительно проще TanStack Table.
+						\
+						\**Что умеет $mol_grid:**
+						\- Виртуальный скролл (через `$mol_list`, 100K строк без проблем)
+						\- Иерархия / дерево (expand/collapse)
+						\- Автоопределение типов колонок
+						\- Интерактивные ячейки (любой компонент)
+						\
+						\**Чего нет из коробки:**
+						\- Сортировка
+						\- Фильтрация
+						\- Пагинация
+						\- Ресайз колонок
+						\- Pinning колонок
+						\
+						\Пример: [calc.hyoo.ru](https://calc.hyoo.ru/)
+						\Репозиторий: [hyoo-ru/calc.hyoo.ru](https://github.com/hyoo-ru/calc.hyoo.ru)
+			<= Reuse_components $mol_expander
+				title \Можно ли переиспользовать компоненты из чужих проектов?
+				content /
+					<= Reuse_components_text $mol_text text \
+						\Да. Каждый компонент в $mol имеет уникальное Fully Qualified Name.
+						\Можно взять компонент из любого проекта, просто сославшись на его имя.
+						\
+						\Пример: в проекте [bhelper](https://github.com/b-on-g/bhelper)
+						\на строке 26 берётся страница из другого репозитория — сборка проходит,
+						\страница появляется.
+						\
+						\> «Каждое слово в tree — точка расширения, ты её можешь перебить в наследнике.»
+						\> — Sergey Yuferev
+			<= Customization $mol_expander
+				title \Как кастомизировать компонент $mol?
+				content /
+					<= Customization_text $mol_text text \
+						\Каждое свойство в `view.tree` — точка расширения.
+						\Можно перебить в наследнике или при создании экземпляра.
+						\
+						\Можно не кастомизировать весь компонент, а создать слот
+						\и через него добавить кастом:
+						\[Пример слота](https://github.com/zerkalica/yuf/blob/20d2992d99aa69f036e5eb5869b7b3a931e396ab/catalog/app/app.view.tree#L27)
+						\
+						\> «Перебитие идёт сразу после создания инстанса в случае фабрики
+						\> или в классе-наследнике.»
+						\> — Sergey Yuferev
+			<= Css_reuse $mol_expander
+				title \Как переиспользовать стили в CSS-in-TS?
+				content /
+					<= Css_reuse_text $mol_text text \
+						\Это обычный TypeScript — используйте переменные и spread:
+						\
+						\```
+						\const sharedStyle: $mol_style_properties = {
+						\  display: 'grid',
+						\  width: '100%',
+						\}
+						\
+						\// Применение:
+						\RangeItem: { ...sharedStyle },
+						\RangeAdd: { ...sharedStyle },
+						\```
+						\
+						\Но лучше таким не увлекаться — это копипастит одни и те же стили
+						\с разными селекторами. Лучше выделить общий компонент.
+						\
+						\> — Дим, Sergey Yuferev
+			<= Zip $mol_expander
+				title \Как работать с ZIP-архивами в $mol?
+				content /
+					<= Zip_text $mol_text text \
+						\Sergey Yuferev интегрировал библиотеку fflate:
+						\[yuf/fflate](https://github.com/zerkalica/yuf/blob/0e81a1f81f6305cb4779f8532166af417dd20120/fflate/fflate.ts#L13)
+						\
+						\Билдится прозрачно, грузится динамически.
+			<= Seo $mol_expander
+				title \Как индексировать контент из Giper Baza для SEO?
+				content /
+					<= Seo_text $mol_text text \
+						\Есть проект [prelander](https://github.com/koplenov/prelander/) —
+						\позволяет индексировать контент из Giper Baza.
+						\
+						\Также можно использовать prerender-сервер с Express:
+						\настроить Chrome headless на порту 4000,
+						\Express на порту 8000 с `prerender-node` middleware,
+						\и раздавать статику из папки `../-/`.
+			<= Reproducible_builds $mol_expander
+				title \Как сделать воспроизводимые сборки?
+				content /
+					<= Reproducible_builds_text $mol_text text \
+						\Sergey Yuferev выложил скрипт:
+						\[yuf/depser](https://github.com/zerkalica/yuf/blob/master/depser/depser)
+						\
+						\Он в проекте в `.ci/*` снепшотит все зависимости
+						\через сабмодули и `package.json`.
+			<= Rich_template $mol_expander
+				title \Какой шаблон проекта использовать для старта?
+				content /
+					<= Rich_template_text $mol_text text \
+						\[richtemplate](https://github.com/Lyumih/richtemplate) —
+						\богатый шаблон, рекомендуется использовать по умолчанию.
+			<= Colors $mol_expander
+				title \Как устроена система цветов / тем в $mol?
+				content /
+					<= Colors_text $mol_text text \
+						\Из объяснений Дима (пересказ Sergey Yuferev):
+						\
+						\- **default** — базовые цвета
+						\- **base** — бренд
+						\- **special** — по вкусу, по тону примерно одинаково с default и base
+						\- **current** — тон чуть ярче, выделенное состояние (текущая ссылка/карточка)
+						\- **accent** — тон ещё ярче, ошибки, акцентные кнопки
+			<= Giper_baza $mol_expander
+				title \Что такое Giper Baza и зачем она нужна?
+				content /
+					<= Giper_baza_text $mol_text text \
+						\Giper Baza — это децентрализованная база данных для $mol приложений.
+						\
+						\**Что даёт:**
+						\- Авторизация из коробки (через ключи шифрования)
+						\- Синхронизация данных между клиентами
+						\- Данные зашифрованы по умолчанию, доступ только у владельца
+						\- Работа офлайн (данные сначала пишутся локально, потом синкаются)
+						\- Merge без конфликтов (CRDT)
+						\- UI обновляется автоматически при получении данных
+						\
+						\**Чего не заменяет:**
+						\- S3 для больших файлов
+						\- Шедулеры, очереди сообщений (RabbitMQ)
+						\- Интеграции с внешними сервисами (для этого нужен обычный бэкенд)
+						\
+						\Статьи:
+						\- [habr.com/ru/articles/943606](https://habr.com/ru/articles/943606/)
+						\- [habr.com/ru/articles/956154](https://habr.com/ru/articles/956154/)
+			<= Versioning $mol_expander
+				title \Как устроено версионирование в $mol?
+				content /
+					<= Versioning_text $mol_text text \
+						\$mol использует подход **versionless** — нет мажорных версий.
+						\Обратная совместимость поддерживается.
+						\
+						\Зависимости (TypeScript, Node.js) не фиксируются — используется последняя версия.
+						\Но при необходимости можно зафиксировать, спулив до определённого коммита.
+						\
+						\Для сборки нужны только Node.js и сам MAM. Внешних зависимостей минимум (1-2).
+			<= Docs $mol_expander
+				title \Где найти документацию?
+				content /
+					<= Docs_text $mol_text text \
+						\- Основная документация: [mol.hyoo.ru](https://mol.hyoo.ru/#!section=docs)
+						\- Телеграм-чат разработчиков (лучший источник ответов)
+						\- GitHub: [github.com/hyoo-ru](https://github.com/hyoo-ru)
