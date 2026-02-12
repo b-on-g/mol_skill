@@ -1,0 +1,1102 @@
+$mol_scroll $mol_view
+	scroll_top? 0
+	scroll_left? 0
+	attr *
+		^
+		tabindex <= tabindex -1
+	event *
+		^
+		scroll?event <=> event_scroll?event null
+
+$mol_book2 $mol_scroll
+	menu_title \
+	sub /$mol_view
+		^ pages <= pages_deep /$mol_view
+		^ placeholders /$mol_view
+			<= Placeholder $mol_view
+	minimal_width 0
+	Gap* $mol_view title \
+
+$mol_theme_auto $mol_plugin
+	light \$mol_theme_light
+	attr * mol_theme <= theme <= dark \$mol_theme_dark
+
+$mol_link $mol_view
+	uri \
+	dom_name \a
+	uri_off \
+	uri_native null
+	external false
+	attr *
+		^
+		href <= uri_toggle \
+		title <= hint_safe <= hint \
+		target <= target \_self
+		download <= file_name \
+		mol_link_current <= current false
+		rel <= relation \
+	sub /$mol_view_content
+		<= title
+	arg *
+	event *
+		^
+		click?event <=> click?event <=> event_click?event null
+
+$mol_embed_native $mol_scroll
+	dom_name \iframe
+	window null
+	attr *
+		^
+		src <= uri? \about:config
+	sub /
+		<= Fallback $mol_link
+			uri <= uri
+			sub /
+				<= title \
+	message *
+		hashchange? <=> uri_change? null
+
+$mol_frame $mol_embed_native
+	attr *
+		tabindex <= tabindex
+		allow <= allow \
+		src <= uri
+		srcdoc <= html null
+	fullscreen true
+	accelerometer true
+	autoplay true
+	encription true
+	gyroscope true
+	pip true
+	clipboard_read true
+	clipboard_write true
+
+$giper_web_frame $mol_frame
+	uri \https://web.giper.dev/#mol_lights={lights}/current={current}/query={query}
+	- uri \http://localhost:9080/giper/web/bar/-/test.html#mol_lights={lights}/current={current}/query={query}
+	query \
+
+$mol_status $mol_view
+	status <= title
+	minimal_height 24
+	minimal_width 0
+	sub /
+		<= message \
+
+$mol_list $mol_view
+	render_visible_only true
+	render_over 0.1
+	sub <= rows /$mol_view
+		<= Gap_before $mol_view style * paddingTop <= gap_before 0
+		<= Empty $mol_view
+		<= Gap_after $mol_view style * paddingTop <= gap_after 0
+	item_height_min* 1
+	item_width_min* 1
+	view_window_shift? 0
+	view_window /
+		0
+		0
+
+$mol_paragraph $mol_view
+	line_height 24
+	letter_width 7
+	width_limit +Infinity
+	row_width 0
+	sub / <= title
+
+$mol_stack $mol_view
+
+$mol_dimmer $mol_paragraph
+	haystack \
+	needle \
+	sub <= parts /$mol_view_content
+	Low* $mol_paragraph
+		sub /
+			<= string* \
+	High* $mol_paragraph
+		sub /
+			<= string* \
+
+$mol_text_code_token $mol_dimmer
+	attr *
+		^
+		mol_text_code_token_type <= type \
+
+$mol_text_code_token_link $mol_text_code_token
+	dom_name \a
+	type \code-link
+	attr *
+		^
+		href <= uri \
+		target \_blank
+
+$mol_text_code_line $mol_paragraph
+	text \
+	minimal_height 24
+	numb_showed true
+	syntax null
+	uri_resolve* \
+	Numb $mol_view
+		sub /
+			<= numb 0
+	Token* $mol_text_code_token
+		type <= token_type* \
+		haystack <= token_text* \
+		needle <= highlight \
+	Token_link* $mol_text_code_token_link
+		haystack <= token_text* \
+		needle <= highlight \
+		uri <= token_uri* \
+	find_pos* null
+
+$mol_speck $mol_view
+	theme \$mol_theme_accent
+	sub /
+		<= value null
+
+$mol_button $mol_view
+	enabled true
+	click?event null
+	event_click?event null
+	status? /
+	event *
+		^
+		click?event <=> activate?event <=> event_activate?event null
+		dblclick?event <=> clicks?event null
+		keydown?event <=> key_press?event <=> event_key_press?event null
+	attr *
+		^
+		disabled <= disabled false
+		role \button
+		tabindex <= tab_index 0
+		title <= hint_safe <= hint \
+	sub /$mol_view_content
+		<= title
+	Speck $mol_speck
+		value <= error \
+
+$mol_button_typed $mol_button
+	minimal_height 40
+	minimal_width 40
+
+$mol_button_minor $mol_button_typed
+
+$mol_svg $mol_view
+	dom_name \svg
+	dom_name_space \http://www.w3.org/2000/svg
+	font_size 16
+	font_family \
+	style_size *
+
+$mol_svg_root $mol_svg
+	dom_name \svg
+	attr *
+		^
+		viewBox <= view_box \0 0 100 100
+		preserveAspectRatio <= aspect \xMidYMid
+
+$mol_svg_path $mol_svg
+	dom_name \path
+	attr *
+		^
+		d <= geometry \
+
+
+$mol_icon $mol_svg_root
+	view_box \0 0 24 24
+	minimal_width 16
+	minimal_height 16
+	sub /
+		<= Path $mol_svg_path
+			geometry <= path \
+
+$mol_icon_clipboard $mol_icon path \M19,3H14.82C14.4,1.84 13.3,1 12,1C10.7,1 9.6,1.84 9.18,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M12,3A1,1 0 0,1 13,4A1,1 0 0,1 12,5A1,1 0 0,1 11,4A1,1 0 0,1 12,3
+
+$mol_icon_clipboard_outline $mol_icon path \M19,3H14.82C14.4,1.84 13.3,1 12,1C10.7,1 9.6,1.84 9.18,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M12,3A1,1 0 0,1 13,4A1,1 0 0,1 12,5A1,1 0 0,1 11,4A1,1 0 0,1 12,3M7,7H17V5H19V19H5V5H7V7Z
+
+$mol_button_copy $mol_button_minor
+	blobs /$mol_blob
+		<= text_blob? $mol_blob /
+			/BlobPart <= text <= title
+			* type \text/plain
+		<= html_blob? $mol_blob /
+			/BlobPart <= html \
+			* type \text/html
+	data *
+	sub /
+		<= Icon $mol_icon_clipboard_outline
+		<= title \
+
+$mol_text_code $mol_stack
+	attr *
+		^
+		mol_text_code_sidebar_showed <= sidebar_showed false
+	text \
+	text_lines /string
+	find_pos* null
+	uri_base \
+	row_themes /string
+	sub /
+		<= Rows $mol_list
+			render_visible_only <= render_visible_only false
+			rows <= rows /
+				<= Row*0 $mol_text_code_line
+					numb_showed <= sidebar_showed
+					numb <= row_numb* 0
+					theme <= row_theme* \
+					text <= row_text* \
+					syntax <= syntax null
+					uri_resolve* <= uri_resolve* \
+					highlight <= highlight \
+		<= Copy $mol_button_copy
+			hint @ \Copy whole code
+			text <= text_export \
+
+$mol_float $mol_view
+	style *
+		^
+		minHeight \auto
+
+$mol_check $mol_button_minor
+	attr *
+		^
+		mol_check_checked <= checked? false
+		aria-checked <= aria_checked \false
+		role <= aria_role \checkbox
+	sub /$mol_view_content
+		<= Icon null
+		<= label /
+			<= Title $mol_view
+				sub /
+					<= title \
+
+$mol_icon_chevron $mol_icon path \M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z
+
+$mol_check_expand $mol_check
+	Icon $mol_icon_chevron
+	level 0
+	style *
+		^
+		paddingLeft <= level_style \0px
+	checked? <=> expanded? false
+	enabled <= expandable false
+
+$mol_grid $mol_view
+	row_height 32
+	row_ids /string[]
+	row_id* null
+	col_ids /
+	records *
+	record* null
+	hierarchy null
+	hierarchy_col \
+	minimal_width 0
+	-
+	sub /
+		<= Head
+		<= Table $mol_grid_table
+			sub <= rows /$mol_view
+	Head $mol_grid_row
+		cells <= head_cells /$mol_view
+	Row* $mol_grid_row
+		minimal_height <= row_height
+		minimal_width <= minimal_width
+		cells <= cells* /$mol_view
+	-
+	Cell* $mol_view
+	cell* null
+	Cell_text* $mol_grid_cell
+		sub <= cell_content_text* <= cell_content* /$mol_view_content
+	Cell_number* $mol_grid_number
+		sub <= cell_content_number* <= cell_content* /$mol_view_content
+	Col_head* $mol_float
+		dom_name \th
+		sub <= col_head_content* /$mol_view_content
+	Cell_branch* $mol_check_expand
+		level <= cell_level* 0
+		label <= cell_content* /$mol_view_content
+		expanded? <=> cell_expanded*? false
+	Cell_content* /
+		<= Cell_dimmer* $mol_dimmer
+			needle <= needle \
+			haystack <= cell_value* \
+
+$mol_grid_table $mol_list
+	- dom_name \table
+
+$mol_grid_row $mol_view
+	- dom_name \tr
+	sub <= cells /$mol_view
+
+$mol_grid_cell $mol_view
+	- dom_name \td
+	minimal_height 40
+
+$mol_grid_number $mol_grid_cell
+
+$mol_image $mol_view
+	dom_name \img
+	attr *any
+		^
+		src <= uri \
+		title <= hint
+		alt <= title \
+		loading <= loading \lazy
+		decoding <= decoding \async
+		crossOrigin <= cors null
+		width <= natural_width 0
+		height <= natural_height 0
+	event *any
+		load? <=> load? null
+	minimal_width 16
+	minimal_height 16
+
+$mol_link_iconed $mol_link
+	sub /
+		<= Icon $mol_image
+			uri <= icon \
+			title \
+	content /
+		<= title <= uri
+	host \
+
+$mol_icon_youtube $mol_icon path \M10,15L15.19,12L10,9V15M21.56,7.17C21.69,7.64 21.78,8.27 21.84,9.07C21.91,9.87 21.94,10.56 21.94,11.16L22,12C22,14.19 21.84,15.8 21.56,16.83C21.31,17.73 20.73,18.31 19.83,18.56C19.36,18.69 18.5,18.78 17.18,18.84C15.88,18.91 14.69,18.94 13.59,18.94L12,19C7.81,19 5.2,18.84 4.17,18.56C3.27,18.31 2.69,17.73 2.44,16.83C2.31,16.36 2.22,15.73 2.16,14.93C2.09,14.13 2.06,13.44 2.06,12.84L2,12C2,9.81 2.16,8.2 2.44,7.17C2.69,6.27 3.27,5.69 4.17,5.44C4.64,5.31 5.5,5.22 6.82,5.16C8.12,5.09 9.31,5.06 10.41,5.06L12,5C16.19,5 18.8,5.16 19.83,5.44C20.73,5.69 21.31,6.27 21.56,7.17Z
+
+$mol_embed_service $mol_check
+	uri \
+	video_preview \
+	video_id \
+	checked? <=> active? false
+	sub /
+		<= Image $mol_image
+			title <= title \
+			uri <= video_preview \
+		<= Hint $mol_icon_youtube
+		<= Frame $mol_frame
+			title <= title \
+			uri <= video_embed \
+
+
+$mol_embed_youtube $mol_embed_service
+
+$mol_embed_rutube $mol_embed_service
+
+$mol_embed_vklive $mol_embed_service
+
+$mol_embed_any $mol_view
+	Image $mol_image
+		title <= title \
+		uri <= uri \
+	Object $mol_embed_native
+		title <= title \
+		uri <= uri \
+	Youtube $mol_embed_youtube
+		title <= title \
+		uri <= uri \
+	Rutube $mol_embed_rutube
+		title <= title \
+		uri <= uri \
+	Vklive $mol_embed_vklive
+		title <= title \
+		uri <= uri \
+
+$mol_expander $mol_list
+	rows /
+		<= Label $mol_view
+			sub /
+				<= Trigger $mol_check_expand
+					checked? <=> expanded? false
+					expandable <= expandable true
+					label <= label /
+						<= title
+				<= Tools null
+		<= Content $mol_list
+			rows <= content /
+
+$mol_text $mol_list
+	uri_base \
+	text \
+	param \
+	flow_tokens /
+	block_text* \
+	auto /
+		<= auto_scroll null
+	- \Blocks
+	Paragraph* $mol_paragraph
+		sub <= block_content* /
+	Quote* $mol_text
+		uri_resolve* <= uri_resolve* \
+		text <= quote_text* \
+		highlight <= highlight \
+		auto_scroll null
+	List* $mol_text_list
+		uri_resolve* <= uri_resolve* \
+		type <= list_type* \-
+		text <= list_text* \
+		highlight <= highlight \
+	item_index* 0
+	Header* $mol_text_header
+		minimal_height 40
+		level <= header_level* 1
+		content <= block_content* /
+		arg <= header_arg* *
+	Pre* $mol_text_code
+		text <= pre_text* \
+		row_themes <= pre_themes* /string
+		highlight <= highlight \
+		uri_resolve* <= uri_resolve* \
+		sidebar_showed <= pre_sidebar_showed <= code_sidebar_showed true
+	Cut* $mol_view dom_name \hr
+	- \Table
+	Table* $mol_grid
+		head_cells <= table_head_cells* /
+		rows <= table_rows* /
+	Table_row* $mol_grid_row
+		cells <= table_cells* /
+	Table_cell* $mol_text
+		auto_scroll null
+		highlight <= highlight \
+		uri_resolve* <= uri_resolve* \
+		text <= table_cell_text* \
+	- \Grid
+	Grid* $mol_grid
+		rows <= grid_rows* /
+	Grid_row* $mol_grid_row
+		cells <= grid_cells* /
+	Grid_cell* $mol_text
+		auto_scroll null
+		highlight <= highlight \
+		uri_resolve* <= uri_resolve* \
+		text <= grid_cell_text* \
+	- \Lines
+	String* $mol_dimmer
+		dom_name \span
+		needle <= highlight \
+		haystack <= line_text* \
+	Span* $mol_text_span
+		dom_name \span
+		type <= line_type* \
+		sub <= line_content* /
+	Code_line* $mol_text_code_line
+		numb_showed false
+		highlight <= highlight \
+		text <= line_text* \
+		uri_resolve* <= uri_resolve* \
+		syntax <= code_syntax null
+	Link* $mol_link_iconed
+		uri <= link_uri* \
+		content <= line_content* /
+	Link_http* $mol_link_iconed
+		uri <= link_uri* \
+		content / <= link_host* \
+	Embed* $mol_embed_any
+		uri <= link_uri* \
+		title <= line_text* \
+	- \Spoilers
+	Spoiler* $mol_expander
+		label /
+			<= Spoiler_label* $mol_text
+				text <= spoiler_label* \
+		content /
+			<= Spoiler_content* $mol_text
+				text <= spoiler_content* \
+
+$mol_text_header $mol_paragraph
+	level 1
+	sub /
+		<= Link $mol_link
+			arg <= arg *
+			hint @ \Permalink to this section
+			sub <= content /
+
+$mol_text_span $mol_paragraph
+	dom_name \span
+	attr *
+		^
+		mol_text_type <= type \
+
+$mol_icon_upload $mol_icon path \M9,16V10H5L12,3L19,10H15V16H9M5,20V18H19V20H5Z
+
+$mol_button_open $mol_button_minor
+	sub /
+		<= Icon $mol_icon_upload
+		<= Native $mol_button_open_native
+			files? <=> files_handled? <=> files? /File
+			accept <= accept \
+			multiple <= multiple true
+
+$mol_button_open_native $mol_view
+	dom_name \input
+	files? /File
+	attr *
+		type \file
+		accept <= accept \
+		multiple <= multiple true
+	event *
+		change?next <=> picked?next null
+
+$mol_attach $mol_view
+	items? /string
+	sub <= content /$mol_view
+		<= Item*0 $mol_button_minor
+			click?event <=> item_drop*?event null
+			sub /
+				<= Image* $mol_image
+					title \
+					uri <= item_uri* \
+		<= Add $mol_button_open
+			title <= attach_title \
+			files? <=> attach_new? null
+
+$mol_hotkey $mol_plugin
+	event *
+		^
+		keydown?event <=> keydown?event null
+	key *
+	mod_ctrl false
+	mod_alt false
+	mod_shift false
+
+$mol_string $mol_view
+	dom_name \input
+	enabled true
+	minimal_height 40
+	autocomplete false
+	selection? /number
+		0
+		0
+	auto /
+		<= selection_watcher null
+		<= error_report null
+	field *
+		^
+		disabled <= disabled false
+		value <= value_changed? <=> value? \
+		placeholder <= hint_visible <= hint \
+		spellcheck <= spellcheck true
+		autocomplete <= autocomplete_native \
+		selectionEnd <= selection_end 0
+		selectionStart <= selection_start 0
+		inputMode <= keyboard \text
+		enterkeyhint <= enter \go
+	attr *
+		^
+		maxlength <= length_max +Infinity
+		type <= type? \text
+	event *
+		^
+		input?event <=> event_change?event null
+	plugins /
+		<= Submit $mol_hotkey
+			mod_ctrl <= submit_with_ctrl false
+			key * enter?event <=> submit?event null
+
+$mol_textarea $mol_stack
+	attr *
+		^
+		mol_textarea_clickable <= clickable? false
+		mol_textarea_sidebar_showed <= sidebar_showed false
+	event *
+		keydown?event <=> press?event null
+		pointermove?event <=> hover?event null
+	sub /
+		<= Edit $mol_textarea_edit
+			value? <=> value? \
+			hint <= hint \ 
+			enabled <= enabled true
+			spellcheck <= spellcheck true
+			length_max <= length_max +Infinity
+			selection? <=> selection? /number
+			bring => bring
+			submit? <=> submit? null
+			submit_with_ctrl <= submit_with_ctrl true
+		<= View $mol_text_code
+			text <= value
+			render_visible_only false
+			row_numb* <= row_numb* 0
+			sidebar_showed <= sidebar_showed
+			highlight <= highlight \
+			syntax <= syntax $mol_syntax2
+	symbols_alt *string
+		comma \<
+		period \>
+		dash \−
+		equals \≈
+		graveAccent \́
+		forwardSlash \÷
+		E \€
+		V \✔
+		X \×
+		C \©
+		P \§
+		H \₽
+		key0 \°
+		key8 \•
+		key2 \@
+		key3 \#
+		key4 \$
+		key6 \^
+		key7 \&
+		bracketOpen \[
+		bracketClose \]
+		slashBack \|
+	symbols_alt_ctrl *string
+		space \ 
+	symbols_alt_shift *string
+		V \✅
+		X \❌
+		O \⭕
+		key1 \❗
+		key4 \💲
+		key7 \❓
+		comma \«
+		period \»
+		semicolon \“
+		quoteSingle \”
+		dash \—
+		equals \≠
+		graveAccent \̱
+		bracketOpen \{
+		bracketClose \}
+
+$mol_textarea_edit $mol_string
+	dom_name \textarea
+	enter \enter
+	field *
+		^
+		scrollTop 0
+
+$mol_icon_send $mol_icon path \M2,21L23,12L2,3V10L17,12L2,14V21Z
+
+$mol_page $mol_view
+	dom_name \article
+	attr *
+		^
+		tabIndex <= tabindex -1
+	sub /
+		<= Head $mol_view
+			minimal_height 64
+			dom_name \header
+			sub <= head /
+				<= Title $mol_view
+					dom_name \h1
+					sub <= title_content /
+						<= Logo null
+						<= title
+				<= Tools $mol_view
+					sub <= tools /$mol_view_content
+		<= Body $mol_scroll
+			scroll_top? => body_scroll_top?
+			sub <= body_content /
+				<= Body_content $mol_view
+					sub <= body /$mol_view
+		<= Foot $mol_view
+			dom_name \footer
+			sub <= foot /$mol_view
+
+$mol_icon_trash_can $mol_icon path \M9,3V4H4V6H5V19A2,2 0 0,0 7,21H17A2,2 0 0,0 19,19V6H20V4H15V3H9M9,8H11V17H9V8M13,8H15V17H13V8Z
+
+$mol_icon_trash_can_outline $mol_icon path \M9,3V4H4V6H5V19A2,2 0 0,0 7,21H17A2,2 0 0,0 19,19V6H20V4H15V3H9M7,6H17V19H7V6M9,8V17H11V8H9M13,8V17H15V8H13Z
+
+$mol_icon_script $mol_icon path \M17.8,20C17.4,21.2 16.3,22 15,22H5C3.3,22 2,20.7 2,19V18H5L14.2,18C14.6,19.2 15.7,20 17,20H17.8M19,2H8C6.3,2 5,3.3 5,5V16H16V17C16,17.6 16.4,18 17,18H18V5C18,4.4 18.4,4 19,4C19.6,4 20,4.4 20,5V6H22V5C22,3.3 20.7,2 19,2Z
+
+$mol_icon_script_text $mol_icon path \M17.8,20C17.4,21.2 16.3,22 15,22H5C3.3,22 2,20.7 2,19V18H5L14.2,18C14.6,19.2 15.7,20 17,20H17.8M19,2C20.7,2 22,3.3 22,5V6H20V5C20,4.4 19.6,4 19,4C18.4,4 18,4.4 18,5V18H17C16.4,18 16,17.6 16,17V16H5V5C5,3.3 6.3,2 8,2H19M8,6V8H15V6H8M8,10V12H14V10H8Z
+
+$mol_link_source $mol_link
+	hint @ \Source code
+	sub /
+		<= Icon $mol_icon_script_text
+
+$mol_icon_gift $mol_icon path \M9.06,1.93C7.17,1.92 5.33,3.74 6.17,6H3A2,2 0 0,0 1,8V10A1,1 0 0,0 2,11H11V8H13V11H22A1,1 0 0,0 23,10V8A2,2 0 0,0 21,6H17.83C19,2.73 14.6,0.42 12.57,3.24L12,4L11.43,3.22C10.8,2.33 9.93,1.94 9.06,1.93M9,4C9.89,4 10.34,5.08 9.71,5.71C9.08,6.34 8,5.89 8,5A1,1 0 0,1 9,4M15,4C15.89,4 16.34,5.08 15.71,5.71C15.08,6.34 14,5.89 14,5A1,1 0 0,1 15,4M2,12V20A2,2 0 0,0 4,22H20A2,2 0 0,0 22,20V12H13V20H11V12H2Z
+
+$mol_icon_gift_outline $mol_icon path \M22,12V20A2,2 0 0,1 20,22H4A2,2 0 0,1 2,20V12A1,1 0 0,1 1,11V8A2,2 0 0,1 3,6H6.17C6.06,5.69 6,5.35 6,5A3,3 0 0,1 9,2C10,2 10.88,2.5 11.43,3.24V3.23L12,4L12.57,3.23V3.24C13.12,2.5 14,2 15,2A3,3 0 0,1 18,5C18,5.35 17.94,5.69 17.83,6H21A2,2 0 0,1 23,8V11A1,1 0 0,1 22,12M4,20H11V12H4V20M20,20V12H13V20H20M9,4A1,1 0 0,0 8,5A1,1 0 0,0 9,6A1,1 0 0,0 10,5A1,1 0 0,0 9,4M15,4A1,1 0 0,0 14,5A1,1 0 0,0 15,6A1,1 0 0,0 16,5A1,1 0 0,0 15,4M3,8V10H11V8H3M13,8V10H21V8H13Z
+
+$mol_link_donate $mol_link
+	hint @ \Thank with a dollar
+	sub /
+		<= Icon $mol_icon_gift_outline
+
+$mol_icon_face $mol_icon path \M9,11.75C8.31,11.75 7.75,12.31 7.75,13C7.75,13.69 8.31,14.25 9,14.25C9.69,14.25 10.25,13.69 10.25,13C10.25,12.31 9.69,11.75 9,11.75M15,11.75C14.31,11.75 13.75,12.31 13.75,13C13.75,13.69 14.31,14.25 15,14.25C15.69,14.25 16.25,13.69 16.25,13C16.25,12.31 15.69,11.75 15,11.75M12,2C6.48,2 2,6.48 2,12C2,17.52 6.48,22 12,22C17.52,22 22,17.52 22,12C22,6.48 17.52,2 12,2M12,20C7.59,20 4,16.41 4,12C4,11.71 4,11.42 4.05,11.14C6.41,10.09 8.28,8.16 9.26,5.77C11.07,8.33 14.05,10 17.42,10C18.2,10 18.95,9.91 19.67,9.74C19.88,10.45 20,11.21 20,12C20,16.41 16.41,20 12,20Z
+
+$mol_icon_face_agent $mol_icon path \M18.72,14.76C19.07,13.91 19.26,13 19.26,12C19.26,11.28 19.15,10.59 18.96,9.95C18.31,10.1 17.63,10.18 16.92,10.18C13.86,10.18 11.15,8.67 9.5,6.34C8.61,8.5 6.91,10.26 4.77,11.22C4.73,11.47 4.73,11.74 4.73,12A7.27,7.27 0 0,0 12,19.27C13.05,19.27 14.06,19.04 14.97,18.63C15.54,19.72 15.8,20.26 15.78,20.26C14.14,20.81 12.87,21.08 12,21.08C9.58,21.08 7.27,20.13 5.57,18.42C4.53,17.38 3.76,16.11 3.33,14.73H2V10.18H3.09C3.93,6.04 7.6,2.92 12,2.92C14.4,2.92 16.71,3.87 18.42,5.58C19.69,6.84 20.54,8.45 20.89,10.18H22V14.67H22V14.69L22,14.73H21.94L18.38,18L13.08,17.4V15.73H17.91L18.72,14.76M9.27,11.77C9.57,11.77 9.86,11.89 10.07,12.11C10.28,12.32 10.4,12.61 10.4,12.91C10.4,13.21 10.28,13.5 10.07,13.71C9.86,13.92 9.57,14.04 9.27,14.04C8.64,14.04 8.13,13.54 8.13,12.91C8.13,12.28 8.64,11.77 9.27,11.77M14.72,11.77C15.35,11.77 15.85,12.28 15.85,12.91C15.85,13.54 15.35,14.04 14.72,14.04C14.09,14.04 13.58,13.54 13.58,12.91A1.14,1.14 0 0,1 14.72,11.77Z
+
+$mol_link_support $mol_link
+	hint @ \Discuss the project
+	sub /
+		<= Icon $mol_icon_face_agent
+
+$mol_check_icon $mol_check
+
+$mol_icon_brightness_4 $mol_icon path \M12,18C11.11,18 10.26,17.8 9.5,17.45C11.56,16.5 13,14.42 13,12C13,9.58 11.56,7.5 9.5,6.55C10.26,6.2 11.11,6 12,6A6,6 0 0,1 18,12A6,6 0 0,1 12,18M20,8.69V4H15.31L12,0.69L8.69,4H4V8.69L0.69,12L4,15.31V20H8.69L12,23.31L15.31,20H20V15.31L23.31,12L20,8.69Z
+
+$mol_lights_toggle $mol_check_icon
+	Icon <= Lights_icon $mol_icon_brightness_4
+	hint @ \Toggle lights
+	checked? <=> lights? false
+
+$mol_text_list $mol_text
+	auto_scroll null
+	attr *
+		^
+		mol_text_list_type <= type \
+	Paragraph* $mol_text_list_item
+		index <= item_index*
+		sub <= block_content*
+
+$mol_text_list_item $mol_paragraph
+	attr *
+		^
+		mol_text_list_item_index <= index 0
+
+$giper_bot $mol_book2
+	Model? $mol_github_model
+		params * temperature 0
+		rules <= context <= rules \Ты - Гипер Бот, универсальный интеллектуальный ассистент. Пользователь присылает тебе запрос в виде JSON строки. Твоя задача сформировать максимально точный и лаконичный ответ на запрос без лишней информации, о которой пользователь не просил. Ответ должен быть представлен в виде JSON объекта, где в поле "response" должен находиться собственно ответ в виде строки. В поле "confidence" отрази степень своей увернности в истинности ответа в диапазоне от 0 до 1. В поле "digest" должен находиться краткий пересказ всего вашего диалога от начала до конца. Говоря о пользователе в пересказе (и только в нём) используй эмодзи 🙂 вместо слова "пользователь", а вместо "Гипер Бота" - используй эмозди 🤖. В поле "title" должно быть придумано лаконичное название, ёмко характеризующее всё обсуждение целиком. Отвечай всегда на языке с кодом {lang}, если пользователь не попросил иное. Далее идёт пересказ прошлых ваших сообщений, не потеряй его в своём пересказе:
+	plugins /
+		<= Theme $mol_theme_auto
+	quote? \
+	pages /
+		<= Space $giper_web_frame
+		<= Dialog $mol_page
+			title_content /
+				\🤖 
+				<= title <= dialog_title? @ \Giper Bot
+			body_content /
+				<= Status $mol_status
+					status <= communication null
+				<= Messages $mol_list
+					rows <= messages /
+						<= Message*0 $mol_view sub /
+							<= Message_text* $mol_text text <= message_text* \
+			foot /
+				<= Attach $mol_attach
+					items? <=> attach? /string
+				<= Prompt_text $mol_textarea
+					event *
+						^
+						pointerdown? <=> quote_start? null
+						pointerup? <=> quote_end? null
+					hint @ \Ask Giper Bot...
+					value? <=> prompt_text? \
+					submit? <=> prompt_submit? null
+				<= Prompt_submit $mol_button_minor
+					hint @ \Send
+					click? <=> prompt_submit? 
+					sub /
+						<= Prompt_submit_icon $mol_icon_send
+	placeholders /
+		<= Context $mol_page
+			title @ \Summary
+			tools /
+				<= Reset $mol_button_minor
+					hint @ \Reset
+					click? <=> reset? null
+					sub /
+						<= Reset_icon $mol_icon_trash_can_outline
+				<= Sources $mol_link_source
+					uri \https://github.com/giper-dev/bot/
+				<= Donate $mol_link_donate
+					uri \https://boosty.to/hyoo
+				<= Support $mol_link_support
+					uri \https://t.me/giper_web/276
+				<= Lights $mol_lights_toggle
+			body /
+				- <= Digest_block $mol_labeler
+					title @ \Digest
+					Content
+				<= Digest $mol_text
+					text <= digest? \
+				- <= Rules_block $mol_labeler
+					title @ \Rules
+					Content <= Rules $mol_text
+						text <=
+
+$bog_mol_app $giper_bot
+	dialog_title? \FAQ Bot
+	Context $mol_page
+		title \База знаний
+		tools /
+			<= Reset $mol_button_minor
+				hint \Сбросить диалог
+				click? <=> reset? null
+				sub /
+					<= Reset_icon $mol_icon_trash_can_outline
+			<= Lights $mol_lights_toggle
+		body /
+			<= Digest $mol_text
+				text <= digest? \
+			<= Faq $mol_list rows /
+				<= Faq_section_chat $mol_expander
+					title \Из чатов разработчиков
+					content /
+						<= Faq_start $mol_expander
+							title \Как запустить Giper Baza?
+							content / <= Faq_start_text $mol_text text \
+								\`npm start`, затем в том же процессе:
+								\```
+								\giper/baza/app/run port=9090
+								\```
+								\— Дим
+						<= Faq_npm $mol_expander
+							title \Как интегрировать npm-модуль?
+							content / <= Faq_npm_text $mol_text text \
+								\**1. Через стабы** — `const pdfjs = lib_pdfjs`
+								\[Пример](https://github.com/hyoo-ru/mam_lib/blob/master/pdfjs/pdfjs.ts)
+								\
+								\**2. Через meta.tree** — если модуль криво бандлится:
+								\[yuf/fflate](https://github.com/zerkalica/yuf/tree/master/fflate)
+								\```
+								\build yuf_fflate_npm_build node ./.npm/.build.mjs
+								\```
+								\— Sergey Yuferev
+						<= Faq_local $mol_expander
+							title \Как сохранить в localStorage?
+							content / <= Faq_local_text $mol_text text \
+								\```
+								\mol_state_local.value( key, value )
+								\```
+								\Реактивный аналог localStorage. Значения сериализуются в JSON.
+						<= Faq_cdn $mol_expander
+							title \Можно ли подключить mol через CDN?
+							content / <= Faq_cdn_text $mol_text text \
+								\**Нет.** mol необходим MAM и TypeScript. Нужен сборщик.
+								\
+								\> «Накостылять на коленке — это не к нам точно.» — Дим
+								\
+								\Vue — один файл ~40KB. mol — 250+ модулей
+								\с автообнаружением зависимостей и кастомной сборкой.
+						<= Faq_forms $mol_expander
+							title \Аналог React Hook Form + Zod?
+							content / <= Faq_forms_text $mol_text text \
+								\`mol_form` + `mol_form_field`. Вместо схем — реактивные геттеры `*_bid()`:
+								\```
+								\name_bid() {
+								\  if( !this.name() ) return 'Обязательное поле'
+								\  return ''
+								\}
+								\```
+								\`bid` = Bad Input Data. Пустая строка = валидно.
+								\Есть `mol_form_draft` с undo/reset.
+						<= Faq_tables $mol_expander
+							title \Таблицы как TanStack Table?
+							content / <= Faq_tables_text $mol_text text \
+								\`mol_grid` — проще TanStack. Есть виртуальный скролл (100K строк),
+								\иерархия, автоопределение типов. Нет сортировки, фильтрации, ресайза из коробки.
+								\[calc.hyoo.ru](https://calc.hyoo.ru/)
+						<= Faq_reuse $mol_expander
+							title \Переиспользование компонентов?
+							content / <= Faq_reuse_text $mol_text text \
+								\Каждый компонент имеет уникальное FQN. Можно взять из любого проекта по имени.
+								\> «Каждое слово в tree — точка расширения» — Sergey Yuferev
+						<= Faq_custom $mol_expander
+							title \Как кастомизировать компонент?
+							content / <= Faq_custom_text $mol_text text \
+								\Каждое свойство в view.tree — точка расширения.
+								\Перебивается в наследнике или при создании экземпляра.
+								\[Пример слота](https://github.com/zerkalica/yuf/blob/20d2992d99aa69f036e5eb5869b7b3a931e396ab/catalog/app/app.view.tree#L27)
+						<= Faq_css $mol_expander
+							title \Переиспользование стилей в CSS-in-TS?
+							content / <= Faq_css_text $mol_text text \
+								\Обычный TypeScript — переменные и spread:
+								\```
+								\const shared: mol_style_properties = { display: 'grid' }
+								\RangeItem: { ...shared },
+								\```
+								\Лучше выделить общий компонент. — Дим
+						<= Faq_zip $mol_expander
+							title \ZIP-архивы в mol?
+							content / <= Faq_zip_text $mol_text text \
+								\[yuf/fflate](https://github.com/zerkalica/yuf/blob/master/fflate/fflate.ts)
+								\Билдится прозрачно, грузится динамически. — Sergey Yuferev
+						<= Faq_seo $mol_expander
+							title \SEO для Giper Baza?
+							content / <= Faq_seo_text $mol_text text \
+								\[prelander](https://github.com/koplenov/prelander/) — индексация контента.
+								\Или prerender-сервер: Chrome headless + Express + prerender-node.
+						<= Faq_builds $mol_expander
+							title \Воспроизводимые сборки?
+							content / <= Faq_builds_text $mol_text text \
+								\[yuf/depser](https://github.com/zerkalica/yuf/blob/master/depser/depser)
+								\Снепшотит зависимости через сабмодули. — Sergey Yuferev
+						<= Faq_template $mol_expander
+							title \Шаблон проекта для старта?
+							content / <= Faq_template_text $mol_text text \
+								\[richtemplate](https://github.com/Lyumih/richtemplate) — рекомендуется по умолчанию.
+						<= Faq_colors $mol_expander
+							title \Система цветов / тем?
+							content / <= Faq_colors_text $mol_text text \
+								\**default** — базовые, **base** — бренд, **special** — по вкусу,
+								\**current** — ярче (выделение), **accent** — ещё ярче (ошибки). — Дим
+						<= Faq_versioning $mol_expander
+							title \Версионирование в mol?
+							content / <= Faq_versioning_text $mol_text text \
+								\**Versionless** — нет мажорных версий. Обратная совместимость.
+								\Можно зафиксировать, спулив до коммита. Зависимостей минимум (1-2).
+				<= Faq_section_quickstart $mol_expander
+					title \Быстрый старт
+					content /
+						<= Faq_setup $mol_expander
+							title \Как установить и запустить проект?
+							content / <= Faq_setup_text $mol_text text \
+								\```bash
+								\git clone https://github.com/hyoo-ru/mam.git ./mam && cd mam
+								\npm install && npm start
+								\```
+								\Откроется на `http://localhost:9080/`. MAM отслеживает изменения автоматически.
+						<= Faq_structure $mol_expander
+							title \Структура проекта?
+							content / <= Faq_structure_text $mol_text text \
+								\```
+								\mam/my/app/
+								\  index.html       — точка входа
+								\  app.view.tree    — декларативная вёрстка
+								\  app.view.ts      — логика компонента
+								\  app.view.css.ts  — типизированные стили
+								\  app.meta.tree    — мета-настройки
+								\```
+								\Имена файлов определяют назначение:
+								\`*.node.ts` — сервер, `*.web.ts` — браузер, `*.test.ts` — тесты.
+						<= Faq_viewtree $mol_expander
+							title \Синтаксис view.tree?
+							content / <= Faq_viewtree_text $mol_text text \
+								\`<=` — односторонняя привязка, `<=>` — двусторонняя,
+								\`/` — список, `*` — словарь, `@` — локализация, `\\` — строка.
+								\```
+								\mol_page
+								\  title <= app_title @ My App
+								\  body /
+								\    <= Name mol_string
+								\      value? <=> name?
+								\```
+						<= Faq_reactivity $mol_expander
+							title \Реактивность в mol?
+							content / <= Faq_reactivity_text $mol_text text \
+								\`@mol_mem` — кэшированное свойство (авто-обновляется).
+								\`@mol_mem_key` — то же, с параметром.
+								\`@mol_action` — модификация состояния.
+								\```
+								\@mol_mem count() { return 0 }
+								\@mol_action increment() { this.count( this.count() + 1 ) }
+								\```
+						<= Faq_components $mol_expander
+							title \Встроенные компоненты?
+							content / <= Faq_components_text $mol_text text \
+								\Кнопки: `mol_button_major`, `mol_button_minor`
+								\Ввод: `mol_string`, `mol_number`, `mol_textarea`
+								\Списки: `mol_list`, `mol_grid`
+								\Формы: `mol_form`, `mol_form_field`
+								\Выбор: `mol_select`, `mol_switch`, `mol_check`
+								\Страницы: `mol_page`, `mol_book2`
+								\Календарь: `mol_calendar`
+						<= Faq_differences $mol_expander
+							title \Отличия от React/Angular?
+							content / <= Faq_differences_text $mol_text text \
+								\**Реактивность** — автоматическая (не нужны useState, useEffect).
+								\**Ленивость** — компоненты создаются при необходимости.
+								\**Размер** — ~100KB vs React ~300KB+ vs Angular ~500KB+.
+								\**Стили** — типизированные, проверяются TypeScript.
+								\В 3 раза меньше кода чем React+Redux+Router.
+				<= Faq_section_giper $mol_expander
+					title \Giper Baza
+					content /
+						<= Faq_giper_what $mol_expander
+							title \Что такое Giper Baza?
+							content / <= Faq_giper_what_text $mol_text text \
+								\Распределённая CRDT-база: offline-first, криптографическая авторизация,
+								\автосинхронизация, merge без конфликтов, zero trust.
+								\
+								\Статьи: [habr/943606](https://habr.com/ru/articles/943606/),
+								\[habr/956154](https://habr.com/ru/articles/956154/)
+						<= Faq_giper_arch $mol_expander
+							title \Архитектура Giper Baza?
+							content / <= Faq_giper_arch_text $mol_text text \
+								\```
+								\Glob (глобальная БД)
+								\ └─ Land (раздел с правами)
+								\   └─ Node (узел данных)
+								\     └─ Unit (ребро графа)
+								\```
+								\Типы: `atom_text`, `atom_bint`, `atom_real`, `atom_time`,
+								\`list_str`, `list_link_to`, `dict`, `dict_to`.
+						<= Faq_giper_auth $mol_expander
+							title \Аутентификация в Giper Baza?
+							content / <= Faq_giper_auth_text $mol_text text \
+								\Криптографическая: Auth (приватный ключ), Pass (публичный),
+								\Lord (ID пользователя). Proof-of-Work для регистрации.
+								\Не нужны логины/пароли — ключи генерируются автоматически.
+						<= Faq_giper_roles $mol_expander
+							title \Права и роли?
+							content / <= Faq_giper_roles_text $mol_text text \
+								\Уровни (Tier): deny, read, post, pull, rule.
+								\Права задаются на уровне Land через пресеты:
+								\```
+								\const land = glob.land_grab([
+								\  [null, giper_baza_rank_read],
+								\  [myPass, giper_baza_rank_rule],
+								\])
+								\```
+						<= Faq_giper_crud $mol_expander
+							title \CRUD в Giper Baza?
+							content / <= Faq_giper_crud_text $mol_text text \
+								\Модель:
+								\```
+								\class MyTask extends giper_baza_entity.with({
+								\  Done: giper_baza_atom_bool,
+								\  CreatedAt: giper_baza_atom_time,
+								\}) {}
+								\```
+								\Создание: `list.make(preset)`, чтение: `.Title()?.val()`,
+								\обновление: `.Title(null)!.val(next)`, удаление: `list.cut(link)`.
+						<= Faq_giper_sync $mol_expander
+							title \Синхронизация?
+							content / <= Faq_giper_sync_text $mol_text text \
+								\Автоматическая. Данные пишутся локально, синкаются при наличии сети.
+								\Ноды на сервере реплицируют данные. UI обновляется автоматически.
+								\Можно развернуть доп. ноды для масштабирования.
+				<= Faq_section_admin $mol_expander
+					title \Админка на Giper Baza
+					content /
+						<= Faq_admin_arch $mol_expander
+							title \Архитектура админки?
+							content / <= Faq_admin_arch_text $mol_text text \
+								\```
+								\UI → Application Logic → Storage → Models → giper_baza_glob
+								\```
+								\Модули: app/, storage/, role/, entity/, card/, list/.
+						<= Faq_admin_roles $mol_expander
+							title \Роли в админке?
+							content / <= Faq_admin_roles_text $mol_text text \
+								\Роли: admin, editor, viewer. Каждая с набором разрешений.
+								\Проверка через `role.check_permission()`.
+								\Права на уровне данных через Giper Baza Land.
+						<= Faq_admin_entity $mol_expander
+							title \Модели сущностей?
+							content / <= Faq_admin_entity_text $mol_text text \
+								\Базовая сущность: Title, CreatedAt, UpdatedAt, CreatedBy, Status.
+								\Soft delete и архивирование. Наследуйте от базовой модели.
+				<= Faq_section_tauri $mol_expander
+					title \Tauri (десктоп)
+					content /
+						<= Faq_tauri_setup $mol_expander
+							title \Как настроить Tauri?
+							content / <= Faq_tauri_setup_text $mol_text text \
+								\1. Установить prerequisites (Xcode/MSVC/libwebkit)
+								\2. Установить Rust: `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`
+								\3. `npm install` в MAM
+								\4. Dev: `npm start` + `npx tauri dev` в отдельном терминале
+						<= Faq_tauri_build $mol_expander
+							title \Сборка Tauri?
+							content / <= Faq_tauri_build_text $mol_text text \
+								\1. Собрать mol: `npm start bog/quiz` → Ctrl+C
+								\2. Собрать Tauri: `npx tauri build`
+								\3. CI/CD через GitHub Actions для Linux/Windows/macOS.
+				<= Faq_section_docs $mol_expander
+					title \Документация и ссылки
+					content /
+						<= Faq_docs $mol_expander
+							title \Где найти документацию?
+							content / <= Faq_docs_text $mol_text text \
+								\- [mol.hyoo.ru](https://mol.hyoo.ru/#!section=docs) — основная дока
+								\- [github.com/hyoo-ru](https://github.com/hyoo-ru) — GitHub
+								\- Телеграм-чат разработчиков — лучший источник ответов
+								\- [richtemplate](https://github.com/Lyumih/richtemplate) — шаблон для старта
