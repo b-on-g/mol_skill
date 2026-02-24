@@ -941,11 +941,124 @@ user_name() {
 }
 ```
 
-#### Циклическая зависимость
+#### Circular subscription / зависание / бесконечный цикл
 
-**Причина**: Два свойства вызывают друг друга
+**Ошибка**: `Error: Circular subscription` из `$mol_wire_pub_sub.promote()`, или браузер зависает без ошибки.
 
-**Решение**: Разбейте логику на несколько свойств
+**Причина**: Побочные эффекты (side-effects) внутри `@$mol_mem` атома.
+
+**Главное правило:**
+
+> `@$mol_mem` = **чистое вычисление**. Только ЧИТАЙ другие атомы, создавай объекты, возвращай значение.
+>
+> `@$mol_action` = **действие**. Можно ПИСАТЬ в атомы, вызывать API, запускать таймеры.
+>
+> **НИКОГДА** не вызывай функции с побочными эффектами (запись в атомы, async, API-вызовы, таймеры, DOM-операции) изнутри `@$mol_mem`.
+
+**Как `$mol_mem` работает под капотом:**
+
+`@$mol_mem` создаёт реактивный "fiber" (через `$mol_wire_solo`). При вычислении атом **подписывается** на все атомы которые читает. Если внутри `@$mol_mem` **записать** в другой атом — это инвалидирует зависимости, что вызывает пересчёт, что снова записывает → бесконечный цикл или "Circular subscription".
+
+`@$mol_action` создаёт одноразовый "task fiber" (через `$mol_wire_task`). Он **НЕ подписывается** на зависимости, поэтому безопасен для записи.
+
+**Примеры ошибок и их исправление:**
+
+```typescript
+// ❌ СЛОМАНО: side-effect внутри @$mol_mem
+@ $mol_mem
+current_screen() {
+    const screen = this.current_screen_id()
+    this.update_back_button()  // ← ПИШЕТ в DOM/API = side-effect!
+    if (screen === 'menu') return [this.Menu()]
+    return [this.Battle()]
+}
+
+// ✅ ИСПРАВЛЕНО: убрали side-effect
+@ $mol_mem
+current_screen() {
+    const screen = this.current_screen_id()
+    // Только читаем и возвращаем — никаких записей
+    if (screen === 'menu') return [this.Menu()]
+    return [this.Battle()]
+}
+```
+
+```typescript
+// ❌ СЛОМАНО: @$mol_mem фабрика вызывает async метод с записью
+@ $mol_mem
+shop() {
+    const shop = new $my_shop()
+    shop.check_pending_payments()  // ← async, пишет loading(true) = side-effect!
+    return shop
+}
+
+// ✅ ИСПРАВЛЕНО: фабрика только создаёт и настраивает объект
+@ $mol_mem
+shop() {
+    const shop = new $my_shop()
+    shop.energy_system = () => this.energy_system()
+    return shop
+}
+```
+
+```typescript
+// ❌ СЛОМАНО: @$mol_mem фабрика вызывает init() с побочными эффектами
+@ $mol_mem
+telegram() {
+    const tg = new $my_telegram()
+    tg.init()                    // ← вызывает wa.ready(), wa.expand() = side-effects
+    tg.setup_back_button(...)    // ← регистрирует callback = side-effect
+    tg.bind_to_player(store)     // ← ПИШЕТ player.nickname() = side-effect!
+    return tg
+}
+
+// ✅ ИСПРАВЛЕНО: фабрика только создаёт объект, init через отдельный action
+@ $mol_mem
+telegram() {
+    return new $my_telegram()
+}
+
+@ $mol_action
+init_telegram() {
+    const tg = this.telegram()
+    tg.init()
+    tg.setup_back_button(() => this.handle_back())
+    tg.bind_to_player(this.player_store())
+}
+```
+
+**Чек-лист: что МОЖНО и НЕЛЬЗЯ в `@$mol_mem`:**
+
+| Можно ✅ | Нельзя ❌ |
+|----------|-----------|
+| Читать другие атомы | Писать в другие атомы |
+| `new SomeClass()` | `someAtom(newValue)` |
+| Чистые вычисления | `fetch()`, `async/await` |
+| `return value` | `setInterval`, `setTimeout` |
+| Привязки: `obj.prop = () => this.x()` | DOM-операции |
+| | `localStorage.setItem()` |
+
+**Обработчики кнопок (click handlers):**
+
+`view.tree` генерирует `@$mol_mem` на базовом классе для `click? <=> handler? null`. Чтобы обработчик мог безопасно писать в атомы, переопределяйте его с `@$mol_action`:
+
+```typescript
+// view.tree генерирует @$mol_mem на базовом классе
+// В $$ классе переопределяем с @$mol_action:
+@ $mol_action
+show_shop(next?: any): any {
+    if (next !== undefined) {
+        this.current_screen_id('shop')  // ← безопасно: @$mol_action может писать
+    }
+    return null
+}
+```
+
+#### Циклическая зависимость (два свойства)
+
+**Причина**: Два `@$mol_mem` свойства читают друг друга
+
+**Решение**: Разбейте логику — выделите общую зависимость в отдельный атом
 
 #### NPM пакет не найден
 

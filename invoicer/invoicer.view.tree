@@ -1,0 +1,94 @@
+$bog_mol_invoicer $mol_page
+	plugins /
+		<= Theme $mol_theme_auto
+	title @ \Заполнение документов по реквизитам
+	tools /
+		<= Lights $mol_lights_toggle
+	body /
+		<= Source_section $mol_list
+			rows /
+				<= Source_label $mol_paragraph
+					title @ \Вставьте текст с реквизитами или загрузите файл
+				<= Source_text $mol_textarea
+					hint @ \ООО "Ромашка", ИНН 7707123456, КПП 770701001...
+					value? <=> source_text? \
+				<= Source_upload $mol_button_open
+					accept \application/pdf,text/plain
+					multiple false
+					files? <=> source_files? /File
+				<= Parse_button $mol_button_major
+					title @ \Распознать реквизиты
+					click? <=> parse_click? null
+		<= Requisites_section $mol_list
+			rows /
+				<= Requisites_title $mol_paragraph
+					title @ \Реквизиты
+				<= Company_name_field $mol_form_field
+					name @ \Название компании
+					control <= Company_name_input $mol_string
+						value? <=> company_name? \
+				<= Inn_field $mol_form_field
+					name @ \ИНН
+					control <= Inn_input $mol_string
+						value? <=> inn? \
+				<= Kpp_field $mol_form_field
+					name @ \КПП
+					control <= Kpp_input $mol_string
+						value? <=> kpp? \
+				<= Ogrn_field $mol_form_field
+					name @ \ОГРН
+					control <= Ogrn_input $mol_string
+						value? <=> ogrn? \
+				<= Legal_address_field $mol_form_field
+					name @ \Юридический адрес
+					control <= Legal_address_input $mol_string
+						value? <=> legal_address? \
+				<= Bank_name_field $mol_form_field
+					name @ \Банк
+					control <= Bank_name_input $mol_string
+						value? <=> bank_name? \
+				<= Bik_field $mol_form_field
+					name @ \БИК
+					control <= Bik_input $mol_string
+						value? <=> bik? \
+				<= Account_field $mol_form_field
+					name @ \Расчётный счёт
+					control <= Account_input $mol_string
+						value? <=> account? \
+				<= Corr_account_field $mol_form_field
+					name @ \Корр. счёт
+					control <= Corr_account_input $mol_string
+						value? <=> corr_account? \
+				<= Director_field $mol_form_field
+					name @ \Руководитель
+					control <= Director_input $mol_string
+						value? <=> director? \
+				<= Phone_field $mol_form_field
+					name @ \Телефон
+					control <= Phone_input $mol_string
+						value? <=> phone? \
+				<= Email_field $mol_form_field
+					name @ \Email
+					control <= Email_input $mol_string
+						value? <=> email? \
+		<= Signature_section $mol_list
+			rows /
+				<= Signature_label $mol_paragraph
+					title @ \Подпись и печать (загрузите изображение)
+				<= Signature_upload $mol_button_open
+					accept \image/*
+					multiple false
+					files? <=> signature_files? /File
+				<= Signature_preview $mol_image
+					uri <= signature_uri? \
+		<= Status $mol_status
+			status <= communication null
+	foot /
+		<= Download_pdf $mol_button_download
+			blob <= result_pdf_blob null
+			file_name <= result_pdf_name \document.pdf
+			title @ \Скачать PDF
+		<= Download_doc $mol_button_download
+			blob <= result_doc_blob null
+			file_name <= result_doc_name \document.doc
+			title @ \Скачать DOC

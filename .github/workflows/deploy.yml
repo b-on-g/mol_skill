@@ -1,4 +1,4 @@
-name: $bog_mol_app
+name: $bog_mol
 
 permissions: write-all
 
@@ -18,9 +18,15 @@ jobs:
     - uses: hyoo-ru/mam_build@master2
       with:
         package: 'bog/mol'
-        modules: 'app'
+        modules: 'app invoicer'
     
     - uses: hyoo-ru/gh-deploy@v4.4.1
       if: github.ref == 'refs/heads/main'
       with:
         folder: 'bog/mol/app/-'
+
+    - uses: hyoo-ru/gh-deploy@v4.4.1
+      if: github.ref == 'refs/heads/main'
+      with:
+        folder: 'bog/mol/invoicer/-'
+        target-folder: 'invoicer/'
