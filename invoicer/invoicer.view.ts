@@ -46,6 +46,31 @@ namespace $.$$ {
 Не добавляй никаких пояснений, только JSON.`
 		}
 
+		@ $mol_mem
+		override source_files( next?: readonly File[] ) {
+			return next ?? [] as readonly File[]
+		}
+
+		override source_file_name() {
+			const files = this.source_files()
+			if( !files.length ) return ''
+			return files[ files.length - 1 ].name
+		}
+
+		@ $mol_mem
+		file_text() {
+			const files = this.source_files()
+			if( !files.length ) return ''
+
+			const file = files[ files.length - 1 ]
+			return $mol_wire_sync( $bog_mol_invoicer_file ).read_file( file )
+		}
+
+		auto() {
+			const text = this.file_text()
+			if( text ) this.source_text( text )
+		}
+
 		@ $mol_action
 		override parse_click() {
 			const text = this.source_text()
@@ -58,8 +83,10 @@ namespace $.$$ {
 			const text = this.source_text()
 			if( !text.trim() ) return null
 
+			const truncated = text.slice( 0, 8000 )
+
 			const model = this.model().fork()
-			model.ask([ text ])
+			model.ask([ truncated ])
 			const result = model.response() as Requisites
 
 			if( result ) {
@@ -80,30 +107,14 @@ namespace $.$$ {
 			return result
 		}
 
-		@ $mol_mem
-		override source_files( next?: readonly File[] ) {
-			if( !next?.length ) return [] as readonly File[]
-
-			const file = next[0]
-			const text = $mol_wire_sync( $bog_mol_invoicer_file ).read_text( file )
-			this.source_text( text )
-
-			return next
-		}
-
-		@ $mol_mem
-		override signature_files( next?: readonly File[] ) {
-			if( !next?.length ) return [] as readonly File[]
-
-			const file = next[0]
-			const uri = $mol_wire_sync( $bog_mol_invoicer_file ).read_data_uri( file )
-			this.signature_uri( uri )
-
-			return next
+		signature_data_uri() {
+			const items = this.signature_attach()
+			if( !items?.length ) return ''
+			return items[ items.length - 1 ]
 		}
 
 		document_html() {
-			const sig = this.signature_uri()
+			const sig = this.signature_data_uri()
 			const signature_html = sig
 				? `<div style="margin-top: 40px; display: flex; align-items: center; gap: 20px;">
 					<img src="${ sig }" style="max-height: 80px;" />
@@ -186,22 +197,26 @@ ${ signature_html }
 
 	export class $bog_mol_invoicer_file {
 
-		static read_text( file: File ): Promise< string > {
-			return new Promise( ( resolve, reject ) => {
-				const reader = new FileReader()
-				reader.onload = () => resolve( reader.result as string )
-				reader.onerror = () => reject( reader.error )
-				reader.readAsText( file )
-			})
+		static async read_file( file: File ): Promise< string > {
+			if( file.type === 'application/pdf' ) {
+				return this.extract_pdf_text( file )
+			}
+
+			return file.text()
 		}
 
-		static read_data_uri( file: File ): Promise< string > {
-			return new Promise( ( resolve, reject ) => {
-				const reader = new FileReader()
-				reader.onload = () => resolve( reader.result as string )
-				reader.onerror = () => reject( reader.error )
-				reader.readAsDataURL( file )
-			})
+		static async extract_pdf_text( file: File ): Promise< string > {
+			const buffer = await file.arrayBuffer()
+			const pdf = await $lib_pdfjs.getDocument({ data: buffer }).promise
+			const parts: string[] = []
+
+			for( let i = 1; i <= pdf.numPages; i++ ) {
+				const page = await pdf.getPage( i )
+				const content = await page.getTextContent()
+				parts.push( content.items.map( ( item: any ) => item.str ).join( ' ' ) )
+			}
+
+			return parts.join( '\n' )
 		}
 
 	}

@@ -12,10 +12,15 @@ $bog_mol_invoicer $mol_page
 				<= Source_text $mol_textarea
 					hint @ \ООО "Ромашка", ИНН 7707123456, КПП 770701001...
 					value? <=> source_text? \
-				<= Source_upload $mol_button_open
-					accept \application/pdf,text/plain
-					multiple false
-					files? <=> source_files? /File
+				<= Source_row $mol_row
+					sub /
+						<= Source_upload $mol_button_open
+							title @ \Загрузить файл
+							files? <=> source_files? /File
+							accept \.pdf,.txt,.doc,.docx
+							multiple false
+						<= Source_file_name $mol_paragraph
+							title <= source_file_name \
 				<= Parse_button $mol_button_major
 					title @ \Распознать реквизиты
 					click? <=> parse_click? null
@@ -75,12 +80,8 @@ $bog_mol_invoicer $mol_page
 			rows /
 				<= Signature_label $mol_paragraph
 					title @ \Подпись и печать (загрузите изображение)
-				<= Signature_upload $mol_button_open
-					accept \image/*
-					multiple false
-					files? <=> signature_files? /File
-				<= Signature_preview $mol_image
-					uri <= signature_uri? \
+				<= Signature_attach $mol_attach
+					items? <=> signature_attach? /string
 		<= Status $mol_status
 			status <= communication null
 	foot /
