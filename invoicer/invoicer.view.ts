@@ -205,9 +205,23 @@ ${ signature_html }
 			return file.text()
 		}
 
+		static pdfjsLib: any = null
+
+		static async load_pdfjs() {
+			if( this.pdfjsLib ) return this.pdfjsLib
+			const cdnVersion = '4.9.155'
+			const src = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${ cdnVersion }/pdf.min.mjs`
+			const workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${ cdnVersion }/pdf.worker.min.mjs`
+			const mod = await import( /* webpackIgnore: true */ src ) as any
+			mod.GlobalWorkerOptions.workerSrc = workerSrc
+			this.pdfjsLib = mod
+			return mod
+		}
+
 		static async extract_pdf_text( file: File ): Promise< string > {
+			const pdfjs = await this.load_pdfjs()
 			const buffer = await file.arrayBuffer()
-			const pdf = await $lib_pdfjs.getDocument({ data: buffer }).promise
+			const pdf = await pdfjs.getDocument({ data: buffer }).promise
 			const parts: string[] = []
 
 			for( let i = 1; i <= pdf.numPages; i++ ) {

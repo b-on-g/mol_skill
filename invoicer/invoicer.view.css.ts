@@ -4,9 +4,20 @@ namespace $.$$ {
 			padding: $mol_gap.block,
 		},
 		Source_text: {
-			minHeight: '4rem',
+			flex: {
+				grow: 0,
+				shrink: 0,
+				basis: 'auto',
+			},
+			minHeight: 'auto',
 			maxHeight: '200px',
 			overflow: 'auto',
+			Edit: {
+				position: 'sticky',
+				top: 0,
+				height: '100%',
+				maxHeight: '200px',
+			},
 		},
 		Source_upload: {
 			position: 'relative',
