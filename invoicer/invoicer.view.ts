@@ -104,7 +104,45 @@ namespace $.$$ {
 				if( result.email ) this.email( result.email )
 			}
 
-			return result
+			return null
+		}
+
+		static signature_storage_key = 'bog_mol_invoicer_signature'
+
+		static async blob_url_to_data_uri( url: string ): Promise< string > {
+			if( !url.startsWith( 'blob:' ) ) return url
+			const resp = await fetch( url )
+			const blob = await resp.blob()
+			return new Promise( ( resolve, reject ) => {
+				const reader = new FileReader()
+				reader.onload = () => resolve( reader.result as string )
+				reader.onerror = reject
+				reader.readAsDataURL( blob )
+			})
+		}
+
+		static async convert_and_save( items: string[] ) {
+			const converted = await Promise.all(
+				items.map( url => $bog_mol_invoicer.blob_url_to_data_uri( url ) )
+			)
+			localStorage.setItem( $bog_mol_invoicer.signature_storage_key, JSON.stringify( converted ) )
+		}
+
+		@ $mol_mem
+		override signature_attach( next?: string[] ) {
+			if( next !== undefined ) {
+				if( next.length ) {
+					$bog_mol_invoicer.convert_and_save( next )
+				} else {
+					try { localStorage.removeItem( $bog_mol_invoicer.signature_storage_key ) } catch {}
+				}
+				return next
+			}
+			try {
+				const saved = localStorage.getItem( $bog_mol_invoicer.signature_storage_key )
+				if( saved ) return JSON.parse( saved ) as string[]
+			} catch {}
+			return []
 		}
 
 		signature_data_uri() {
@@ -164,17 +202,48 @@ ${ signature_html }
 </html>`
 		}
 
-		@ $mol_mem
-		override result_pdf_blob() {
-			if( !this.company_name() ) return null as any
-
+		@ $mol_action
+		override download_pdf_click() {
+			if( !this.company_name() ) return
 			const html = this.document_html()
-			return new Blob([ html ], { type: 'application/pdf' })
+			const body = html.replace( /.*<body[^>]*>/s, '' ).replace( /<\/body>.*/s, '' )
+
+			const container = document.createElement( 'div' )
+			container.innerHTML = body
+			container.style.cssText = 'position:absolute;left:-9999px;width:170mm;font-family:serif;font-size:14px;line-height:1.6;'
+			document.body.appendChild( container )
+
+			const { jsPDF } = ( globalThis as any ).jspdf ?? {}
+			if( !jsPDF ) {
+				const script = document.createElement( 'script' )
+				script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js'
+				script.onload = () => this.download_pdf_click()
+				document.head.appendChild( script )
+				document.body.removeChild( container )
+				return
+			}
+
+			const doc = new jsPDF({ unit: 'mm', format: 'a4' })
+			doc.html( container, {
+				callback: ( pdf: any ) => {
+					document.body.removeChild( container )
+					pdf.save( this.result_doc_name().replace( /\.doc$/, '.pdf' ) )
+				},
+				x: 20,
+				y: 10,
+				width: 170,
+				windowWidth: container.scrollWidth,
+			})
 		}
 
-		override result_pdf_name() {
-			const name = this.company_name() || 'document'
-			return `${ name.replace( /[^\w\dа-яА-ЯёЁ\s]/g, '' ).trim() }.pdf`
+		@ $mol_action
+		override print_click() {
+			if( !this.company_name() ) return
+			const html = this.document_html()
+			const win = window.open( '', '_blank' )!
+			win.document.write( html )
+			win.document.close()
+			win.onload = () => { win.print() }
 		}
 
 		@ $mol_mem

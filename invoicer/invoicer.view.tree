@@ -85,10 +85,12 @@ $bog_mol_invoicer $mol_page
 		<= Status $mol_status
 			status <= communication null
 	foot /
-		<= Download_pdf $mol_button_download
-			blob <= result_pdf_blob null
-			file_name <= result_pdf_name \document.pdf
+		<= Download_pdf $mol_button_major
 			title @ \Скачать PDF
+			click? <=> download_pdf_click? null
+		<= Print_pdf $mol_button_minor
+			title @ \Печать / PDF
+			click? <=> print_click? null
 		<= Download_doc $mol_button_download
 			blob <= result_doc_blob null
 			file_name <= result_doc_name \document.doc
