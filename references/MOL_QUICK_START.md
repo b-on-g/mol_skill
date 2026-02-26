@@ -662,6 +662,8 @@ export class $my_form extends $.$my_form {
 
 ### Стилизация
 
+Стили **ТОЛЬКО** через `.view.css.ts` с `$mol_style_define`. Без `as any`!
+
 ```typescript
 $mol_style_define($my_card, {
 	display: 'flex',
@@ -675,7 +677,7 @@ $mol_style_define($my_card, {
 		radius: $mol_gap.round,
 	},
 
-	// Вложенные элементы
+	// Вложенные элементы (суб-компоненты)
 	Title: {
 		font: {
 			size: '1.25rem',
@@ -683,6 +685,222 @@ $mol_style_define($my_card, {
 		},
 	},
 })
+```
+
+#### Правила типизированных стилей — $mol_style_define
+
+**КРИТИЧНО: `as any` ЗАПРЕЩЁН.** Если TypeScript ругается — значит неправильный формат свойства. Ниже правильные паттерны.
+
+##### Shorthand-свойства (camelCase, НЕ вложенные объекты!)
+
+```typescript
+// ✅ ПРАВИЛЬНО — camelCase shorthand
+borderRadius: '12px',
+borderRadius: $mol_gap.round,
+minWidth: '15rem',
+minHeight: '100vh',
+maxWidth: '300px',
+maxHeight: '50vh',
+boxSizing: 'border-box',
+whiteSpace: 'nowrap',
+textAlign: 'center',
+textOverflow: 'ellipsis',
+boxShadow: '0 4px 12px #00000066',
+textShadow: '0 1px 2px rgba(0,0,0,0.5)',
+gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
+userSelect: 'none',
+touchAction: 'none',
+pointerEvents: 'none',
+
+// ❌ НЕПРАВИЛЬНО — так НЕ работает!
+min: { width: '15rem' },          // → используй minWidth
+max: { width: '300px' },          // → используй maxWidth
+box: { sizing: 'border-box' },    // → используй boxSizing
+white: { space: 'nowrap' },       // → используй whiteSpace
+text: { align: 'center' },        // → используй textAlign
+border: { radius: '12px' },       // → используй borderRadius (без as any!)
+```
+
+##### Вложенные объекты — только для сгруппированных CSS-свойств
+
+```typescript
+// ✅ Группа font
+font: {
+	size: '1rem',
+	weight: 'bold',
+	style: 'italic',
+},
+
+// ✅ Группа flex
+flex: {
+	direction: 'column',
+	wrap: 'wrap',
+	grow: 1,
+	shrink: 0,
+	basis: '120px',
+},
+
+// ✅ Группа background
+background: {
+	color: $mol_theme.card,
+	image: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+},
+
+// ✅ Группа border (без radius! radius → borderRadius)
+border: {
+	width: '2px',
+	style: 'solid',
+	color: '#9e9e9e',
+},
+
+// ✅ Группа margin/padding (НЕ shorthand-строки!)
+margin: { top: '1rem', bottom: '1rem' },
+padding: { top: '0.5rem', bottom: '0.5rem', left: '1rem', right: '1rem' },
+
+// ✅ Группа overflow
+overflow: { x: 'hidden', y: 'auto' },
+
+// ✅ Группа justify/align
+justify: { content: 'center' },
+align: { items: 'center', self: 'center' },
+
+// ✅ Группа text
+text: { overflow: 'ellipsis' },
+
+// ✅ Группа animation
+animation: {
+	name: 'bounce',
+	duration: '0.6s',
+	timingFunction: 'ease-out',
+},
+
+// ✅ Группа aspect
+aspect: { ratio: '1' },
+```
+
+##### Padding/margin — ЗАПРЕЩЕНЫ shorthand-строки!
+
+```typescript
+// ❌ НЕПРАВИЛЬНО — строка-шортхенд не проходит типизацию
+padding: '0.5rem 1rem',
+padding: '0.25rem 0.75rem',
+
+// ✅ ПРАВИЛЬНО — объект Directions<Length>
+padding: '1rem',                    // одинаково со всех сторон — ОК
+padding: $mol_gap.block,            // токен — ОК
+padding: { top: '0.5rem', bottom: '0.5rem', left: '1rem', right: '1rem' },
+```
+
+##### Цвета — ЗАПРЕЩЕНЫ rgba() строки в типизированных позициях!
+
+```typescript
+// ❌ НЕПРАВИЛЬНО — rgba() не проходит тип $mol_style_properties_color
+background: { color: 'rgba(156,39,176,0.3)' },
+color: 'rgba(255,255,255,0.7)',
+
+// ✅ ПРАВИЛЬНО — hex с альфа-каналом
+background: { color: '#9c27b04d' },   // rgba(156,39,176,0.3) → #9c27b04d
+color: '#ffffffb3',                     // rgba(255,255,255,0.7) → #ffffffb3
+
+// ✅ Тема-токены
+background: { color: $mol_theme.card },
+color: $mol_theme.text,
+color: $mol_theme.shade,
+```
+
+> **Конвертация rgba → hex:** `rgba(R,G,B,A)` → `#RRGGBBAA` где AA = Math.round(A * 255).toString(16)
+
+##### box-shadow — обязательно поле spread!
+
+```typescript
+// ❌ НЕПРАВИЛЬНО — без spread не пройдёт тип
+box: { shadow: [{ x: 0, y: '4px', blur: '12px', color: '#000' }] },
+
+// ✅ ПРАВИЛЬНО — spread обязателен
+box: { shadow: [{ x: 0, y: '4px', blur: '12px', spread: 0, color: '#0000004d' }] },
+```
+
+##### Суб-компоненты — ТОЛЬКО на верхнем уровне!
+
+```typescript
+// ❌ НЕПРАВИЛЬНО — вложенные суб-компоненты внутри других
+$mol_style_define($my_widget, {
+	Header: {
+		Icon: { ... },     // ← НЕ работает! Icon внутри Header
+		Level: { ... },    // ← НЕ работает!
+	},
+})
+
+// ✅ ПРАВИЛЬНО — все суб-компоненты на верхнем уровне
+$mol_style_define($my_widget, {
+	Header: {
+		display: 'flex',
+		justify: { content: 'space-between' },
+	},
+	Icon: {
+		font: { size: '1.5rem' },
+	},
+	Level: {
+		font: { size: '0.75rem' },
+	},
+})
+```
+
+##### Стили по CSS-классам и атрибутам
+
+```typescript
+// Стили для любого $mol_view внутри компонента
+$mol_view: {
+	padding: { top: '0.25rem', bottom: '0.25rem', left: 0, right: 0 },
+},
+
+// Стили по кастомным атрибутам (@)
+'@': {
+	my_custom_attr: {
+		true: { display: 'flex' },
+		false: { display: 'none' },
+		some_value: { color: '#ffd700' },
+	},
+},
+
+// Hover/pseudo — через строковые ключи
+':hover': {
+	transform: 'scale(1.02)',
+},
+```
+
+##### Кастомные атрибуты — attr в view.tree
+
+Чтобы использовать кастомный атрибут на компоненте, он ДОЛЖЕН быть объявлен в `attr *` самого компонента:
+
+```tree
+- Если нужен кастомный attr на $mol_button_minor:
+$my_custom_button $mol_button_minor
+	attr *
+		^                              - ^ наследует parent attrs (disabled, role, tabindex, title)
+		my_custom_state <= active false
+```
+
+Без `^` (наследования) пропадут обязательные атрибуты родителя и TypeScript выдаст ошибку.
+
+##### Доступные токены
+
+```typescript
+// Тема
+$mol_theme.back       // фон страницы
+$mol_theme.card       // фон карточки
+$mol_theme.text       // основной текст
+$mol_theme.shade      // приглушённый текст
+$mol_theme.focus      // акцент/фокус
+$mol_theme.control    // кнопки/контролы
+$mol_theme.field      // поля ввода
+$mol_theme.current    // текущий/выделенный
+$mol_theme.accent     // акцентный цвет
+
+// Отступы
+$mol_gap.block        // стандартный отступ блока
+$mol_gap.space        // стандартный gap
+$mol_gap.round        // стандартный border-radius
 ```
 
 ### Тестирование
