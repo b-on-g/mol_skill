@@ -277,8 +277,36 @@ ${signature_html}
 		override result_doc_blob() {
 			if (!this.company_name()) return null as any
 
-			const html = this.document_html()
-			return new Blob(['\ufeff', html], { type: 'application/msword' })
+			const sig = this.signature_data_uri()
+			if (!sig || !sig.startsWith('data:')) {
+				const html = this.document_html()
+				return new Blob(['\ufeff', html], { type: 'application/msword' })
+			}
+
+			const match = sig.match(/^data:(.*?);base64,(.*)$/)
+			if (!match) {
+				const html = this.document_html()
+				return new Blob(['\ufeff', html], { type: 'application/msword' })
+			}
+
+			const [, mimeType, base64Data] = match
+			const ext = mimeType.split('/')[1] || 'png'
+			const cid = `signature.${ext}`
+
+			const signature_html = `<div style="margin-top: 40px; display: flex; align-items: center; gap: 20px;">
+				<img src="cid:${cid}" style="max-height: 80px;" />
+				<span>${this.director()}</span>
+			</div>`
+
+			const html = this.document_html().replace(
+				/<div style="margin-top: 40px;[\s\S]*?<\/div>/,
+				signature_html
+			)
+
+			const boundary = '----=_NextPart_boundary'
+			const mhtml = `MIME-Version: 1.0\r\nContent-Type: multipart/related; boundary="${boundary}"\r\n\r\n--${boundary}\r\nContent-Type: text/html; charset="utf-8"\r\nContent-Transfer-Encoding: quoted-printable\r\n\r\n${html}\r\n--${boundary}\r\nContent-Type: ${mimeType}\r\nContent-Transfer-Encoding: base64\r\nContent-ID: <${cid}>\r\n\r\n${base64Data}\r\n--${boundary}--`
+
+			return new Blob([mhtml], { type: 'application/msword' })
 		}
 
 		override result_doc_name() {
