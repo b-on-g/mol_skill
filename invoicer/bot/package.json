@@ -1,0 +1,17 @@
+{
+  "name": "invoicer-bot",
+  "version": "1.0.0",
+  "description": "Telegram bot for Invoicer Mini App",
+  "main": "bot.js",
+  "type": "module",
+  "scripts": {
+    "start": "node bot.js",
+    "dev": "node --watch bot.js"
+  },
+  "dependencies": {
+    "grammy": "^1.21.1",
+    "dotenv": "^16.3.1",
+    "pdf-parse": "^1.1.1",
+    "mammoth": "^1.6.0"
+  }
+}

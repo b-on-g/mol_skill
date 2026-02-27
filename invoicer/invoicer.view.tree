@@ -141,7 +141,7 @@ $bog_mol_invoicer $mol_page
 						value? <=> selected_template_id? \default
 						options <= template_options /string
 						dictionary <= template_dictionary *string
-	foot /
+	foot <= foot_buttons /
 		<= Download_pdf $mol_button_major
 			title @ \Скачать PDF
 			click? <=> download_pdf_click? null
@@ -152,6 +152,9 @@ $bog_mol_invoicer $mol_page
 			blob <= result_doc_blob null
 			file_name <= result_doc_name \document.doc
 			title @ \Скачать DOC
+		<= Send_to_chat $mol_button_major
+			title @ \Отправить в чат
+			click? <=> send_to_chat_click? null
 	Parse_loader_icon $mol_icon_refresh
 	Template_row!id $mol_row
 		sub /

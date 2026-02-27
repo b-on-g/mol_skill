@@ -170,6 +170,24 @@
 			],
 			"dependencies": [],
 			"status": "pending"
+		},
+		{
+			"id": "INV-007",
+			"category": "infrastructure",
+			"priority": "critical",
+			"description": "Проверить билд и аудит, закоммитить и пушнуть всё в main.",
+			"acceptance_criteria": [
+				"Билд проходит без error TS",
+				"web.audit.js содержит Audit passed",
+				"Все изменения закоммичены и запушены в main"
+			],
+			"test_steps": [
+				"Шаг 1: cd /Users/cmyser/code/mam && npm exec mam bog/mol/invoicer — без ошибок",
+				"Шаг 2: cat bog/mol/invoicer/-/web.audit.js — Audit passed",
+				"Шаг 3: git add && git commit && git push origin main"
+			],
+			"dependencies": ["INV-006"],
+			"status": "done"
 		}
 	]
 }

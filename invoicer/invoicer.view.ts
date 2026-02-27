@@ -28,6 +28,80 @@ namespace $.$$ {
 
 	export class $bog_mol_invoicer extends $.$bog_mol_invoicer {
 
+		/** Check if running inside Telegram Mini App */
+		is_telegram_app(): boolean {
+			return $bog_mol_invoicer_telegram.is_telegram_app()
+		}
+
+		/** Initialize Telegram Mini App on mount */
+		override auto() {
+			const text = this.file_text()
+			if (text) this.source_text(text)
+
+			// Initialize Telegram if running as Mini App
+			if (this.is_telegram_app()) {
+				$bog_mol_invoicer_telegram.init()
+				this.init_from_url_params()
+			}
+		}
+
+		/** Read text from URL params (for Telegram deep links) */
+		init_from_url_params() {
+			const params = new URLSearchParams(window.location.search)
+			const text = params.get('text')
+			if (text) {
+				this.source_text(decodeURIComponent(text))
+			}
+		}
+
+		/** Override foot buttons based on platform */
+		override foot_buttons() {
+			const buttons: $mol_view[] = [
+				this.Download_pdf(),
+				this.Download_doc(),
+			]
+
+			// In Telegram Mini App, show "Send to chat" instead of "Print"
+			if (this.is_telegram_app()) {
+				buttons.push(this.Send_to_chat())
+			} else {
+				buttons.push(this.Print_pdf())
+			}
+
+			return buttons
+		}
+
+		/** Send document to Telegram chat */
+		@$mol_action
+		override send_to_chat_click() {
+			if (!this.company_name()) return
+
+			const blob = this.result_doc_blob()
+			if (!blob) return
+
+			$mol_wire_sync($bog_mol_invoicer).send_blob_to_telegram(blob, this.result_doc_name())
+		}
+
+		/** Convert blob to base64 and send to Telegram */
+		static async send_blob_to_telegram(blob: Blob, fileName: string) {
+			const reader = new FileReader()
+			const base64 = await new Promise<string>((resolve, reject) => {
+				reader.onload = () => {
+					const result = reader.result as string
+					const base64 = result.split(',')[1]
+					resolve(base64)
+				}
+				reader.onerror = reject
+				reader.readAsDataURL(blob)
+			})
+
+			$bog_mol_invoicer_telegram.send_data(JSON.stringify({
+				action: 'download_doc',
+				content: base64,
+				fileName,
+			}))
+		}
+
 		@$mol_mem
 		override settings_open(next?: boolean): boolean {
 			return next ?? false
@@ -136,11 +210,6 @@ namespace $.$$ {
 
 			const file = files[files.length - 1]
 			return $mol_wire_sync($bog_mol_invoicer_file).read_file(file)
-		}
-
-		auto() {
-			const text = this.file_text()
-			if (text) this.source_text(text)
 		}
 
 		@$mol_action
@@ -827,6 +896,162 @@ ${signature_html}
 				.replace(/>/g, '&gt;')
 				.replace(/"/g, '&quot;')
 				.replace(/'/g, '&apos;')
+		}
+	}
+
+	/** Telegram WebApp API interface */
+	interface TelegramWebApp {
+		initData: string
+		initDataUnsafe: {
+			query_id?: string
+			user?: {
+				id: number
+				first_name: string
+				last_name?: string
+				username?: string
+				language_code?: string
+			}
+			auth_date?: number
+			hash?: string
+		}
+		version: string
+		platform: string
+		colorScheme: 'light' | 'dark'
+		themeParams: {
+			bg_color?: string
+			text_color?: string
+			hint_color?: string
+			link_color?: string
+			button_color?: string
+			button_text_color?: string
+			secondary_bg_color?: string
+		}
+		isExpanded: boolean
+		viewportHeight: number
+		viewportStableHeight: number
+		MainButton: {
+			text: string
+			color: string
+			textColor: string
+			isVisible: boolean
+			isActive: boolean
+			isProgressVisible: boolean
+			setText(text: string): void
+			onClick(callback: () => void): void
+			offClick(callback: () => void): void
+			show(): void
+			hide(): void
+			enable(): void
+			disable(): void
+			showProgress(leaveActive?: boolean): void
+			hideProgress(): void
+		}
+		BackButton: {
+			isVisible: boolean
+			onClick(callback: () => void): void
+			offClick(callback: () => void): void
+			show(): void
+			hide(): void
+		}
+		ready(): void
+		expand(): void
+		close(): void
+		sendData(data: string): void
+		openLink(url: string, options?: { try_instant_view?: boolean }): void
+		openTelegramLink(url: string): void
+		showPopup(params: {
+			title?: string
+			message: string
+			buttons?: Array<{
+				id?: string
+				type?: 'default' | 'ok' | 'close' | 'cancel' | 'destructive'
+				text?: string
+			}>
+		}, callback?: (button_id: string) => void): void
+		showAlert(message: string, callback?: () => void): void
+		showConfirm(message: string, callback?: (confirmed: boolean) => void): void
+		enableClosingConfirmation(): void
+		disableClosingConfirmation(): void
+		setHeaderColor(color: 'bg_color' | 'secondary_bg_color' | string): void
+		setBackgroundColor(color: 'bg_color' | 'secondary_bg_color' | string): void
+	}
+
+	interface TelegramGlobal {
+		WebApp: TelegramWebApp
+	}
+
+	declare const Telegram: TelegramGlobal | undefined
+
+	/** Telegram Mini App integration helper */
+	export class $bog_mol_invoicer_telegram {
+
+		/** Check if running inside Telegram Mini App */
+		static is_telegram_app(): boolean {
+			return typeof Telegram !== 'undefined' && Telegram.WebApp?.initData !== ''
+		}
+
+		/** Get Telegram WebApp instance */
+		static webapp(): TelegramWebApp | null {
+			if (!this.is_telegram_app()) return null
+			return Telegram!.WebApp
+		}
+
+		/** Initialize Telegram Mini App */
+		static init() {
+			const webapp = this.webapp()
+			if (!webapp) return
+
+			webapp.ready()
+			webapp.expand()
+
+			this.apply_theme()
+		}
+
+		/** Apply Telegram theme to the app */
+		static apply_theme() {
+			const webapp = this.webapp()
+			if (!webapp) return
+
+			const theme = webapp.themeParams
+			const root = document.documentElement
+
+			if (theme.bg_color) {
+				root.style.setProperty('--mol_theme_back', theme.bg_color)
+			}
+			if (theme.text_color) {
+				root.style.setProperty('--mol_theme_text', theme.text_color)
+			}
+			if (theme.hint_color) {
+				root.style.setProperty('--mol_theme_shade', theme.hint_color)
+			}
+			if (theme.button_color) {
+				root.style.setProperty('--mol_theme_control', theme.button_color)
+			}
+		}
+
+		/** Send data to bot */
+		static send_data(data: string) {
+			const webapp = this.webapp()
+			if (!webapp) return
+			webapp.sendData(data)
+		}
+
+		/** Show alert (fallback to native if not in Telegram) */
+		static show_alert(message: string): Promise<void> {
+			return new Promise(resolve => {
+				const webapp = this.webapp()
+				if (!webapp) {
+					alert(message)
+					resolve()
+					return
+				}
+				webapp.showAlert(message, resolve)
+			})
+		}
+
+		/** Close Mini App */
+		static close() {
+			this.webapp()?.close()
 		}
 	}
 }
