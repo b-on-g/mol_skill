@@ -3,6 +3,30 @@ $bog_mol_invoicer $mol_page
 		<= Theme $mol_theme_auto
 	title @ \Заполнение документов по реквизитам
 	tools /
+		<= Settings_popup $mol_pop_over
+			- align \bottom_right
+			showed? <=> settings_open? false
+			Anchor <= Settings_toggle $mol_check_icon
+				hint @ \Настройки LLM
+				Icon <= Settings_icon $mol_icon_cog
+				checked? <=> settings_open? false
+			bubble_content /
+				<= Settings_panel $mol_list
+					rows /
+						<= Settings_title $mol_paragraph
+							title @ \Настройки LLM
+						<= Llm_url_field $mol_form_field
+							name @ \API URL (OpenAI-совместимый)
+							control <= Llm_url_input $mol_string
+								hint @ \http://localhost:11434/v1
+								value? <=> llm_url? \
+						<= Llm_key_field $mol_form_field
+							name @ \API Key
+							control <= Llm_key_input $mol_string
+								hint @ \sk-...
+								value? <=> llm_key? \
+						<= Settings_hint $mol_paragraph
+							title @ \Оставьте пустым для GitHub Model (по умолчанию)
 		<= Lights $mol_lights_toggle
 	body /
 		<= Source_section $mol_list
@@ -21,19 +45,30 @@ $bog_mol_invoicer $mol_page
 							multiple false
 						<= Source_file_name $mol_paragraph
 							title <= source_file_name \
-				<= Parse_button $mol_button_major
-					title @ \Распознать реквизиты
-					click? <=> parse_click? null
+				<= Parse_row $mol_row
+					sub /
+						<= Parse_button $mol_button_major
+							title <= parse_button_title @ \Распознать реквизиты
+							click? <=> parse_click? null
+							enabled <= parse_button_enabled true
+						<= Parse_loader $mol_view
+							sub <= parse_loader_content /
 		<= Requisites_section $mol_list
 			rows /
-				<= Requisites_title $mol_paragraph
-					title @ \Реквизиты
+				<= Requisites_header $mol_row
+					sub /
+						<= Requisites_title $mol_paragraph
+							title @ \Реквизиты
+						<= Clear_button $mol_button_minor
+							title @ \Очистить
+							click? <=> clear_click? null
 				<= Company_name_field $mol_form_field
 					name @ \Название компании
 					control <= Company_name_input $mol_string
 						value? <=> company_name? \
 				<= Inn_field $mol_form_field
 					name @ \ИНН
+					bid <= inn_error \
 					control <= Inn_input $mol_string
 						value? <=> inn? \
 				<= Kpp_field $mol_form_field
@@ -54,14 +89,17 @@ $bog_mol_invoicer $mol_page
 						value? <=> bank_name? \
 				<= Bik_field $mol_form_field
 					name @ \БИК
+					bid <= bik_error \
 					control <= Bik_input $mol_string
 						value? <=> bik? \
 				<= Account_field $mol_form_field
 					name @ \Расчётный счёт
+					bid <= account_error \
 					control <= Account_input $mol_string
 						value? <=> account? \
 				<= Corr_account_field $mol_form_field
 					name @ \Корр. счёт
+					bid <= corr_account_error \
 					control <= Corr_account_input $mol_string
 						value? <=> corr_account? \
 				<= Director_field $mol_form_field
@@ -84,6 +122,25 @@ $bog_mol_invoicer $mol_page
 					items? <=> signature_attach? /string
 		<= Status $mol_status
 			status <= communication null
+		<= Templates_section $mol_list
+			rows /
+				<= Templates_title $mol_paragraph
+					title @ \Шаблоны документов
+				<= Templates_upload_row $mol_row
+					sub /
+						<= Templates_upload $mol_button_open
+							title @ \Загрузить шаблон DOCX
+							files? <=> template_upload_files? /File
+							accept \.docx
+							multiple false
+				<= Templates_list $mol_list
+					rows <= template_rows /
+				<= Templates_select $mol_form_field
+					name @ \Активный шаблон
+					control <= Templates_select_picker $mol_select
+						value? <=> selected_template_id? \default
+						options <= template_options /string
+						dictionary <= template_dictionary *string
 	foot /
 		<= Download_pdf $mol_button_major
 			title @ \Скачать PDF
@@ -95,3 +152,11 @@ $bog_mol_invoicer $mol_page
 			blob <= result_doc_blob null
 			file_name <= result_doc_name \document.doc
 			title @ \Скачать DOC
+	Parse_loader_icon $mol_icon_refresh
+	Template_row!id $mol_row
+		sub /
+			<= Template_name!id $mol_paragraph
+				title <= template_name!id \
+			<= Template_delete!id $mol_button_minor
+				title @ \Удалить
+				click? <=> template_delete_click!id? null
