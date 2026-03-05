@@ -172,23 +172,31 @@ namespace $.$$ {
 		}
 
 		llm_rules() {
-			return `Ты — парсер реквизитов компаний. Тебе дают текст с реквизитами (из PDF, письма, карточки контрагента и т.п.).
-Извлеки все реквизиты и верни СТРОГО в JSON формате:
+			return `Ты — парсер реквизитов компаний. Тебе дают текст с реквизитами (из PDF, Word-документа, письма, карточки контрагента, договора и т.п.).
+Текст может быть извлечён автоматически, поэтому:
+- Порядок полей может быть нарушен
+- Слова могут быть разбиты пробелами или переносами
+- Могут быть лишние символы, мусор, XML-артефакты
+- Реквизиты могут быть в таблице, колонтитулах, подвале документа
+- Название банка может быть сокращено (ПАО Сбербанк, АО Альфа-Банк и т.п.)
+
+Извлеки ВСЕ реквизиты и верни СТРОГО в JSON формате:
 {
-  "company_name": "полное название с ОПФ",
-  "inn": "ИНН",
-  "kpp": "КПП",
-  "ogrn": "ОГРН или ОГРНИП",
-  "legal_address": "юридический адрес",
-  "bank_name": "название банка",
-  "bik": "БИК банка",
-  "account": "расчётный счёт",
-  "corr_account": "корреспондентский счёт",
-  "director": "ФИО руководителя/ИП",
+  "company_name": "полное название с ОПФ (ООО, ИП, АО и т.п.)",
+  "inn": "ИНН (только цифры, 10 или 12 знаков)",
+  "kpp": "КПП (только цифры, 9 знаков)",
+  "ogrn": "ОГРН или ОГРНИП (только цифры)",
+  "legal_address": "юридический адрес полностью",
+  "bank_name": "полное название банка",
+  "bik": "БИК банка (только цифры, 9 знаков)",
+  "account": "расчётный счёт (только цифры, 20 знаков)",
+  "corr_account": "корреспондентский счёт (только цифры, 20 знаков)",
+  "director": "ФИО руководителя/ИП в именительном падеже",
   "phone": "телефон",
   "email": "email"
 }
 Если какое-то поле не найдено — оставь пустую строку "".
+Ищи реквизиты даже если текст грязный или неструктурированный.
 Не добавляй никаких пояснений, только JSON.`
 		}
 
@@ -661,6 +669,20 @@ ${signature_html}
 				return this.extract_pdf_text(file)
 			}
 
+			if (
+				file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+				file.name.toLowerCase().endsWith('.docx')
+			) {
+				return this.extract_docx_text(file)
+			}
+
+			if (
+				file.type === 'application/msword' ||
+				file.name.toLowerCase().endsWith('.doc')
+			) {
+				return this.extract_doc_text(file)
+			}
+
 			return file.text()
 		}
 
@@ -686,10 +708,143 @@ ${signature_html}
 			for (let i = 1; i <= pdf.numPages; i++) {
 				const page = await pdf.getPage(i)
 				const content = await page.getTextContent()
-				parts.push(content.items.map((item: any) => item.str).join(' '))
+				const items = content.items.filter((item: any) => item.str)
+
+				if (!items.length) continue
+
+				const lines: string[] = []
+				let currentLine = ''
+				let lastY: number | null = null
+
+				for (const item of items) {
+					const y = item.transform?.[5]
+
+					if (lastY !== null && y !== undefined && Math.abs(y - lastY) > 2) {
+						if (currentLine.trim()) lines.push(currentLine.trim())
+						currentLine = item.str
+					} else {
+						if (currentLine && item.str) {
+							currentLine += ' ' + item.str
+						} else {
+							currentLine += item.str
+						}
+					}
+
+					if (y !== undefined) lastY = y
+				}
+
+				if (currentLine.trim()) lines.push(currentLine.trim())
+				parts.push(lines.join('\n'))
 			}
 
-			return parts.join('\n')
+			return parts.join('\n\n')
+		}
+
+		static async extract_docx_text(file: File): Promise<string> {
+			const JSZip = await $bog_mol_invoicer_docx.load_jszip()
+			const buffer = await file.arrayBuffer()
+			const zip = await JSZip.loadAsync(buffer)
+
+			const documentXml = await zip.file('word/document.xml')?.async('string')
+			if (!documentXml) {
+				throw new Error('Invalid DOCX: word/document.xml not found')
+			}
+
+			return documentXml
+				.replace(/<\/w:p>/g, '\n')
+				.replace(/<\/w:tr>/g, '\n')
+				.replace(/<w:tab\/>/g, '\t')
+				.replace(/<w:br[^>]*\/>/g, '\n')
+				.replace(/<[^>]+>/g, '')
+				.replace(/&amp;/g, '&')
+				.replace(/&lt;/g, '<')
+				.replace(/&gt;/g, '>')
+				.replace(/&quot;/g, '"')
+				.replace(/&apos;/g, "'")
+				.replace(/\n{3,}/g, '\n\n')
+				.trim()
+		}
+
+		static async extract_doc_text(file: File): Promise<string> {
+			const text = await file.text()
+
+			// HTML-based .doc files (Word saves HTML with .doc extension)
+			if (/<html|<!DOCTYPE/i.test(text)) {
+				return text
+					.replace(/<style[\s\S]*?<\/style>/gi, '')
+					.replace(/<script[\s\S]*?<\/script>/gi, '')
+					.replace(/<[^>]+>/g, ' ')
+					.replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')
+					.replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+					.replace(/&#(\d+);/g, (_, n: string) => String.fromCharCode(+n))
+					.replace(/\s+/g, ' ').trim()
+			}
+
+			// RTF-based .doc files
+			if (text.startsWith('{\\rtf')) {
+				return text
+					.replace(/\{\\[^{}]*\}/g, '')
+					.replace(/\\[a-z]+\d*\s?/g, '')
+					.replace(/[{}]/g, '')
+					.replace(/\\'([0-9a-f]{2})/gi, (_, h: string) => String.fromCharCode(parseInt(h, 16)))
+					.trim()
+			}
+
+			// Binary DOC format - extract readable text via UTF-16LE
+			const buffer = await file.arrayBuffer()
+			const view = new DataView(buffer)
+			const parts: string[] = []
+			let current = ''
+
+			for (let i = 0; i < buffer.byteLength - 1; i += 2) {
+				const ch = view.getUint16(i, true)
+				if (
+					(ch >= 0x20 && ch <= 0x7E) ||
+					(ch >= 0x0400 && ch <= 0x04FF) ||
+					ch === 0x0A || ch === 0x0D || ch === 0x09
+				) {
+					current += String.fromCharCode(ch)
+				} else {
+					if (current.trim().length > 3) parts.push(current.trim())
+					current = ''
+				}
+			}
+			if (current.trim().length > 3) parts.push(current.trim())
+
+			const utf16Result = parts.join('\n')
+
+			// If UTF-16LE produced Cyrillic text, use it
+			if (/[а-яА-ЯёЁ]/.test(utf16Result) && utf16Result.length > 50) {
+				return utf16Result
+			}
+
+			// Fallback: try CP1251 byte-by-byte extraction
+			const bytes = new Uint8Array(buffer)
+			const cp1251Parts: string[] = []
+			current = ''
+
+			for (let i = 0; i < bytes.length; i++) {
+				const b = bytes[i]
+				let char = ''
+				if ((b >= 0x20 && b <= 0x7E) || b === 0x0A || b === 0x0D || b === 0x09) {
+					char = String.fromCharCode(b)
+				} else if (b >= 0xC0 && b <= 0xFF) {
+					char = String.fromCharCode(0x0410 + (b - 0xC0))
+				} else if (b === 0xA8) {
+					char = 'Ё'
+				} else if (b === 0xB8) {
+					char = 'ё'
+				}
+				if (char) {
+					current += char
+				} else {
+					if (current.trim().length > 3) cp1251Parts.push(current.trim())
+					current = ''
+				}
+			}
+			if (current.trim().length > 3) cp1251Parts.push(current.trim())
+
+			return cp1251Parts.join('\n') || utf16Result
 		}
 	}
 
@@ -870,18 +1025,47 @@ ${signature_html}
 			const JSZip = await this.load_jszip()
 			const zip = await JSZip.loadAsync(content)
 
-			const documentXml = await zip.file('word/document.xml')?.async('string')
+			let documentXml = await zip.file('word/document.xml')?.async('string')
 			if (!documentXml) {
 				throw new Error('Invalid DOCX: no word/document.xml')
 			}
 
-			let processed = documentXml
-			for (const [key, value] of Object.entries(placeholders)) {
-				const regex = new RegExp(`\\{\\{\\s*${key}\\s*\\}\\}`, 'g')
-				processed = processed.replace(regex, this.escape_xml(value))
-			}
+			// Word often splits {{placeholder}} across multiple XML runs.
+			// Process each paragraph: merge run texts, do replacements, rebuild if changed.
+			documentXml = documentXml.replace(
+				/(<w:p\b[^>]*>)([\s\S]*?)(<\/w:p>)/g,
+				(fullMatch: string, pOpen: string, inner: string, pClose: string) => {
+					const texts: string[] = []
+					inner.replace(/<w:t[^>]*>([\s\S]*?)<\/w:t>/g, (_: string, t: string) => {
+						texts.push(t)
+						return _
+					})
+					let fullText = texts.join('')
 
-			zip.file('word/document.xml', processed)
+					let changed = false
+					for (const [key, value] of Object.entries(placeholders)) {
+						const regex = new RegExp(`\\{\\{\\s*${key}\\s*\\}\\}`, 'g')
+						const newText = fullText.replace(regex, this.escape_xml(value))
+						if (newText !== fullText) {
+							fullText = newText
+							changed = true
+						}
+					}
+
+					if (!changed) return fullMatch
+
+					// Rebuild paragraph with replaced text, preserving formatting
+					const pPrMatch = inner.match(/<w:pPr>[\s\S]*?<\/w:pPr>/)
+					const pPr = pPrMatch ? pPrMatch[0] : ''
+
+					const rPrMatch = inner.match(/<w:r\b[^>]*>\s*(<w:rPr>[\s\S]*?<\/w:rPr>)/)
+					const rPr = rPrMatch ? rPrMatch[1] : ''
+
+					return `${pOpen}${pPr}<w:r>${rPr}<w:t xml:space="preserve">${fullText}</w:t></w:r>${pClose}`
+				}
+			)
+
+			zip.file('word/document.xml', documentXml)
 
 			return await zip.generateAsync({
 				type: 'blob',
