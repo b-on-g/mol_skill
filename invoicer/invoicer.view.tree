@@ -27,6 +27,8 @@ $bog_mol_invoicer $mol_page
 								value? <=> llm_key? \
 						<= Settings_hint $mol_paragraph
 							title @ \Оставьте пустым для GitHub Model (по умолчанию)
+		<= Version $bog_version
+			version \0.1.0
 		<= Lights $mol_lights_toggle
 	body /
 		<= Source_section $mol_list
