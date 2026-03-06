@@ -48,6 +48,43 @@ description: Build or modify apps with $mol/MAM and related stack. Use when the 
 
 - Follow `references/TAURI_SETUP.md` for setup, dev, and build steps.
 - Ensure `frontendDist` points to the built `-/` folder.
+- For CI builds use `b-on-g/tauri-mol-workflow-template`:
+
+```yaml
+# As action (single platform, use matrix for multi-platform)
+- uses: b-on-g/tauri-mol-workflow-template@master
+  with:
+    module: "appname/app"          # MAM module path
+    platform: desktop              # desktop | android | ios
+
+# As reusable workflow (all platforms out of the box)
+jobs:
+  tauri:
+    uses: b-on-g/tauri-mol-workflow-template/.github/workflows/tauri_reusable.yml@master
+    with:
+      mam_module_path: appname/app
+    secrets: inherit
+```
+
+## 7) SEO / Prerendering (if requested)
+
+- $mol SPAs need prerendering for search engine indexing — Googlebot sees empty `<div>` without it.
+- Use `b-on-g/mol-prerender-action` after `mam_build`, before deploy:
+
+```yaml
+- uses: b-on-g/mol-prerender-action@main
+  with:
+    base-url: "https://example.github.io/app/"  # prod URL for sitemap
+    screens: |                                    # screen IDs, one per line
+      campaign
+      shop
+      leaderboard
+```
+
+- Auto-detects build dir and root selector from `index.html`.
+- Generates static HTML per screen, `sitemap.xml`, and `robots.txt`.
+- `route-format`: `#!` (default) or `?` — matches `$mol_state_arg` format.
+- Title and description extracted from each rendered page automatically.
 
 ## Output expectations
 
