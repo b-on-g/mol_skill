@@ -16,6 +16,7 @@ description: Build or modify apps with $mol/MAM and related stack. Use when the 
 - Use `references/MOL_GIPER_BAZA_GUIDE.md` for data modeling, auth/roles, CRUD, sync, and backend-style patterns.
 - Use `references/GIPER_BAZA_ADMIN_GUIDE.md` for admin panels, roles, UI patterns, and admin CRUD flows.
 - Use `references/TAURI_SETUP.md` for desktop setup, build, and CI.
+- **ALWAYS** read `references/DIMA_STYLE.md` before writing any code — it defines the idiomatic $mol coding style (parametrized components via `*`, `@$mol_mem_key`, minimal CSS, no `.make()`).
 
 ## 3) Implement in a MAM module
 

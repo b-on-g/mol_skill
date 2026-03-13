@@ -1241,20 +1241,17 @@ $mol_test({
 
 ;(async () => {
 	const king = await $giper_baza_auth.generate()
-	$giper_baza_auth.embryos.push(king.toString())
+	$giper_baza_auth.embryos.push(king.toString() + king.toStringPrivate())
 	const land = await $mol_wire_async($giper_baza_glob).land_grab([[null, $giper_baza_rank_post('slow')]])
 	await $mol_wire_async(land).units_saving()
 
-	const id = land.link().str
-	console.log('Land ID:', id)
-
-	const parts = [[id, new $giper_baza_pack_part(land.diff_units(), land.faces)]]
+	const parts = land.diff_parts()
 	const pack = $giper_baza_pack.make(parts)
 	const a = document.createElement('a')
 	a.href = URL.createObjectURL(pack.toBlob())
 	a.download = 'leaderboard.baza'
 	a.click()
-	alert('Land ID: ' + id)
+	alert('Land ID: ' + land.link().str)
 })()
 ```
 
@@ -1364,7 +1361,7 @@ create_land(): string {
 ;(async () => {
 	// 1. Создаём ленд
 	const king = await $giper_baza_auth.generate()
-	$giper_baza_auth.embryos.push(king.toString())
+	$giper_baza_auth.embryos.push(king.toString() + king.toStringPrivate())
 	const land = await $mol_wire_async($giper_baza_glob).land_grab([[null, $giper_baza_rank_post('slow')]])
 
 	// 2. Форсируем подписание
