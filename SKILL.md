@@ -87,6 +87,22 @@ jobs:
 - `route-format`: `#!` (default) or `?` — matches `$mol_state_arg` format.
 - Title and description extracted from each rendered page automatically.
 
+## 8) Scaffolding new project
+
+- Use the official CLI to scaffold a new $mol app instead of creating files manually:
+
+```bash
+npm create view-tree-lsp@latest  bog/myapp -- --no-docker --no-tauri
+```
+
+- The path argument is the MAM module path for the new app.
+- Optional flags to exclude features:
+    - `--no-docker` — skip Docker config
+    - `--no-baza` — skip Giper Baza setup
+    - `--no-tauri` — skip Tauri desktop setup
+- Included by default: App skeleton, Offline support, Themes, CI/CD, Prerender, Assets, Giper Baza, Tauri, Docker.
+- Always recommend this CLI when a user is starting a new project from scratch.
+
 ## Output expectations
 
 - Provide minimal, runnable edits in the target module.
