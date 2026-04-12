@@ -268,7 +268,6 @@ auto() {
 ```ts
 this.$.$mol_state_arg.value( 'chat' )
 this.$.$mol_state_local.value( 'master', next )
-this.$.$hyoo_crus_glob.home( $hyoo_budget_person )
 ```
 
 Это не синглтоны — это DI через контекст, что позволяет тестировать и изолировать.

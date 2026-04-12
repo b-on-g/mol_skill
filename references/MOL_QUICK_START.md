@@ -65,12 +65,14 @@ mam/
 > Каждое `_` в имени класса означает вложенную папку.
 >
 > **Правильно:**
+>
 > ```
 > my/app/attack/timer/     → $my_app_attack_timer
 > my/app/game/field/       → $my_app_game_field
 > ```
 >
 > **Неправильно:**
+>
 > ```
 > my/app/attack_timer/     → MAM ищет /my/app/attack/timer/, не находит!
 > my/app/game_field/       → MAM ищет /my/app/game/field/, не находит!
@@ -662,8 +664,8 @@ export class $my_form extends $.$my_form {
 
 ### Стилизация
 
-Стили **ТОЛЬКО** через `.view.css.ts` с `$mol_style_define`. Без `as any`!
-
+Стили **ТОЛЬКО** через `.view.css.ts` с `$mol_style_define`. Без `as any`! **БЕЗ** .css только view.css.ts
+НА 1 файл 1 компонент для стилизации строго 
 ```typescript
 $mol_style_define($my_card, {
 	display: 'flex',
@@ -808,7 +810,7 @@ color: $mol_theme.text,
 color: $mol_theme.shade,
 ```
 
-> **Конвертация rgba → hex:** `rgba(R,G,B,A)` → `#RRGGBBAA` где AA = Math.round(A * 255).toString(16)
+> **Конвертация rgba → hex:** `rgba(R,G,B,A)` → `#RRGGBBAA` где AA = Math.round(A \* 255).toString(16)
 
 ##### box-shadow — обязательно поле spread!
 
@@ -887,20 +889,20 @@ $my_custom_button $mol_button_minor
 
 ```typescript
 // Тема
-$mol_theme.back       // фон страницы
-$mol_theme.card       // фон карточки
-$mol_theme.text       // основной текст
-$mol_theme.shade      // приглушённый текст
-$mol_theme.focus      // акцент/фокус
-$mol_theme.control    // кнопки/контролы
-$mol_theme.field      // поля ввода
-$mol_theme.current    // текущий/выделенный
-$mol_theme.accent     // акцентный цвет
+$mol_theme.back // фон страницы
+$mol_theme.card // фон карточки
+$mol_theme.text // основной текст
+$mol_theme.shade // приглушённый текст
+$mol_theme.focus // акцент/фокус
+$mol_theme.control // кнопки/контролы
+$mol_theme.field // поля ввода
+$mol_theme.current // текущий/выделенный
+$mol_theme.accent // акцентный цвет
 
 // Отступы
-$mol_gap.block        // стандартный отступ блока
-$mol_gap.space        // стандартный gap
-$mol_gap.round        // стандартный border-radius
+$mol_gap.block // стандартный отступ блока
+$mol_gap.space // стандартный gap
+$mol_gap.round // стандартный border-radius
 ```
 
 ### Тестирование
@@ -1247,14 +1249,14 @@ init_telegram() {
 
 **Чек-лист: что МОЖНО и НЕЛЬЗЯ в `@$mol_mem`:**
 
-| Можно ✅ | Нельзя ❌ |
-|----------|-----------|
-| Читать другие атомы | Писать в другие атомы |
-| `new SomeClass()` | `someAtom(newValue)` |
-| Чистые вычисления | `fetch()`, `async/await` |
-| `return value` | `setInterval`, `setTimeout` |
-| Привязки: `obj.prop = () => this.x()` | DOM-операции |
-| | `localStorage.setItem()` |
+| Можно ✅                              | Нельзя ❌                   |
+| ------------------------------------- | --------------------------- |
+| Читать другие атомы                   | Писать в другие атомы       |
+| `new SomeClass()`                     | `someAtom(newValue)`        |
+| Чистые вычисления                     | `fetch()`, `async/await`    |
+| `return value`                        | `setInterval`, `setTimeout` |
+| Привязки: `obj.prop = () => this.x()` | DOM-операции                |
+|                                       | `localStorage.setItem()`    |
 
 **Обработчики кнопок (click handlers):**
 
