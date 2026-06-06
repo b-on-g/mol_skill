@@ -5,7 +5,7 @@ Skill for Codex/skills.sh that covers $mol/MAM development, view.tree/view.ts pa
 ## Install
 
 ```bash
-npx skills add b-on-g/mol_skill
+npx skills add b-on-g/mol_skill --all -g
 ```
 
 ## Usage examples
