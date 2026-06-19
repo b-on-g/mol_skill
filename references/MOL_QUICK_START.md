@@ -906,6 +906,51 @@ $mol_gap.space // стандартный gap
 $mol_gap.round // стандартный border-radius
 ```
 
+##### Свой набор токенов через `$mol_style_prop`
+
+Своя палитра/spacing/что-угодно для модуля делается в три шага:
+
+**1) Декларация** в `bog/myapp/tokens/tokens.ts`. ⚠️ Identifier `$bog_myapp_tokens` ОБЯЗАН совпадать с module path (`bog/myapp/tokens/tokens.ts`), иначе MAM не подтянет в граф.
+
+```typescript
+namespace $ {
+    export const $bog_myapp_tokens = $mol_style_prop(
+        'bog_myapp',
+        [ 'text_dim', 'tile_border', 'accent_soft' ] as const
+    )
+}
+```
+
+Каждое имя превращается в getter, возвращающий строку `'var(--bog_myapp_text_dim)'` и т.д.
+
+**2) Значения CSS-переменных** — раздельно от деклараций. Удобнее всего raw `.view.css` рядом, `bog/myapp/tokens/tokens.view.css`:
+
+```css
+[bog_builderui_lights="dark"] {
+    --bog_myapp_text_dim: #d4d4d8;
+    --bog_myapp_tile_border: #27272a;
+}
+[bog_builderui_lights="light"] {
+    --bog_myapp_text_dim: #52525b;
+    --bog_myapp_tile_border: #e4e4e7;
+}
+```
+
+Селекторы любые: `:root`, `[bog_builderui_base="zinc"]`, `[data-theme="x"]` — что угодно подходящее под твой пресет/тему. Альтернатива — `$mol_style_attach('id', ':root { ... }')` в `.ts` (нужно для `@keyframes`/динамики).
+
+**3) Использование** в любом `.view.css.ts`:
+
+```typescript
+namespace $ {
+    $mol_style_define( $bog_myapp_tile, {
+        color: $bog_myapp_tokens.text_dim,
+        border: { color: $bog_myapp_tokens.tile_border, width: '1px', style: 'solid' },
+    } )
+}
+```
+
+JSDoc-комент с `@see $bog_myapp_tokens` **не нужен** — идентификатор `$bog_myapp_tokens` в TS-коде сам по себе тащит модуль в граф зависимостей MAM (см. правила про string-literal/identifier парсинг).
+
 ### Тестирование
 
 ```typescript
@@ -968,6 +1013,90 @@ export class $my_data_loader extends $.$my_data_loader {
 	// пока промис не разрешится
 }
 ```
+
+### Кастомизация плашки сломанного компонента
+
+`$mol` рисует ошибки компонента красно-чёрными диагональными полосами через CSS-правило:
+
+```css
+[mol_view][mol_view_error]:not([mol_view_error="Promise"], [mol_view_error="$mol_promise_blocker"]) {
+    background-image: repeating-linear-gradient(-45deg, #f92323, #f92323 .5rem, #ff3d3d .5rem, #ff3d3d 1.5rem);
+    color: black;
+    align-items: center;
+    justify-content: center;
+}
+```
+
+⚠️ Селектор обязательно исключает `Promise` и `$mol_promise_blocker` — это loading-состояния, а не ошибки. Их трогать не надо.
+
+**Переопределить** под свою тему — в raw `.view.css` рядом с приложением (например `app/app.view.css`). Скоупь селектором на свой корень `[bog_myapp]`, чтобы не побить чужие $mol-приложения в том же бандле:
+
+```css
+[bog_myapp] [mol_view][mol_view_error]:not([mol_view_error="Promise"], [mol_view_error="$mol_promise_blocker"]) {
+    background-color: var(--bog_builderui_card);
+    background-image: repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 10px,
+        rgba(239, 68, 68, 0.18) 10px,
+        rgba(239, 68, 68, 0.18) 20px
+    );
+    color: var(--bog_builderui_text);
+    border: 1px solid #ef4444;
+    border-radius: var(--bog_builderui_radius);
+    padding: 0.75rem 1rem 0.75rem 2.75rem;
+    box-shadow: 0 0 24px -8px rgba(239, 68, 68, 0.45);
+    position: relative;
+    overflow: hidden;
+    align-items: center;
+    justify-content: flex-start;
+    animation: bog_myapp_error_slide 1s linear infinite;
+}
+
+[bog_myapp] [mol_view][mol_view_error]:not([mol_view_error="Promise"], [mol_view_error="$mol_promise_blocker"])::before {
+    content: "⚠";
+    display: inline-block;
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    font-size: 1.25rem;
+    color: #ef4444;
+    transform: translateY(-50%);
+    animation: bog_myapp_error_pulse 0.9s ease-in-out infinite;
+}
+
+@keyframes bog_myapp_error_slide {
+    from { background-position: 0 0; }
+    to { background-position: 20px 0; }
+}
+
+@keyframes bog_myapp_error_pulse {
+    0%, 100% { transform: translateY(-50%) scale(1); opacity: 0.85; }
+    50% { transform: translateY(-50%) scale(1.35); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    [bog_myapp] [mol_view][mol_view_error]:not([mol_view_error="Promise"], [mol_view_error="$mol_promise_blocker"]),
+    [bog_myapp] [mol_view][mol_view_error]:not([mol_view_error="Promise"], [mol_view_error="$mol_promise_blocker"])::before {
+        animation: none;
+    }
+}
+```
+
+**Почему вертикальные (`90deg`), а не диагональные (`45deg`)**: для бесшовного `background-position`-цикла величина сдвига должна быть **целочисленным пиксельным** периодом градиента. При 45° период вдоль x = `gradient_period / cos(45°) = gradient_period × √2` — иррационален, на loop-boundary браузер округляет sub-pixel-ом и появляется визуальный «снап» (тонкая линия-разрыв в полосах). У 90°/0° период вдоль оси анимации = целое число пикселей → snap нулевой, движение идеально-плавное.
+
+Если очень хочется диагональ — два пути:
+- Замедлить цикл до десятков секунд (snap раз в полминуты практически незаметен)
+- Перенести полосы в `::after` псевдо-элемент с `position:absolute; inset:-32px` + `transform: translate(…)` анимация. Transform лучше работает с sub-pixel precision. Минус: нужно возиться с `z-index: -1` + `isolation: isolate` на родителе чтобы текст рисовался поверх, и `::before` для иконки — могут быть багги стилевые конфликты с $mol
+
+Почему raw `.view.css`, а не `.view.css.ts`:
+- `content: "⚠"` для `::before` отсутствует в `$mol_style_prop`-словаре
+- `@keyframes` тоже не выражается через типизированный define
+- Используй токены темы через `var(--bog_builderui_card)` и т.п., чтобы плашка не вырывалась из палитры
+
+Идеи для красивых ошибок: тонкая штриховка с прозрачностью + цветная рамка + glow + пульсирующая иконка `::before`. Полезные эмодзи: `⚠`, `💥`, `🔥`, `💀`. Главное — не блок-рекламы из 90-х, юзер мог просто потерять связь.
+
+⚠️ Обязательно добавляй `@media (prefers-reduced-motion: reduce)` с `animation: none` — без этого ломаешь accessibility юзерам, кто отключил анимации в системе.
 
 ---
 
