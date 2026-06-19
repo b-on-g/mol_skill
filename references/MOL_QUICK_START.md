@@ -1281,6 +1281,48 @@ show_shop(next?: any): any {
 
 **Решение**: Разбейте логику — выделите общую зависимость в отдельный атом
 
+#### `Maximum call stack size exceeded`: `<=>` биндинг к child + делегирование из parent
+
+**Симптом**: `RangeError: Maximum call stack size exceeded` сразу при первом обращении к prop'у. Стек — повторяющиеся вызовы `app.prop → child.prop → app.prop → ...`.
+
+**Причина**: `<=>` биндинг в `<= Child ...` секции view.tree генерит на child INSTANCE override: `child.prop = (next) => parent.prop(next)`. Этот override **shadow-ит** реализацию `child.prop` из `$$`-класса (того же бага, что в `mol_subview_override_drops_bindings.md` и записке про `<=> + $$ override`).
+
+Если parent ОДНОВРЕМЕННО делегирует обратно: `parent.prop() { return this.Child().prop() }` — получаем `parent → child (shadow) → parent → child → ...` infinite recursion.
+
+```tree
+// ❌ СЛОМАНО: app делегирует к Head, а биндинг шадоу-ит Head.tab обратно на app.tab
+$my_app $mol_view
+    sub /
+        <= Head $my_app_head
+            tab? <=> tab? \library    // shadow: Head.tab = (n) => app.tab(n)
+```
+```typescript
+override tab( next?: string ) {
+    return this.Head().tab( next )   // → Head.tab → app.tab → бесконечный цикл
+}
+```
+
+**Решение**: убрать `<=>` биндинг к тому child'у, в которого parent уже делегирует. Child делает свою работу сам (`@$mol_mem` + state_arg/state_local), parent дёргает его напрямую. Sibling-компоненты (Nav и т.п.) продолжают биндиться к parent.prop через `<=>` — parent делегирует child'у — цикла нет, потому что у Nav нет shadow на Head.
+
+```tree
+// ✅ ИСПРАВЛЕНО: убрали <=> к Head; Nav продолжает биндиться к app
+$my_app $mol_view
+    sub /
+        <= Head $my_app_head
+            // никакого tab? <=> tab?
+        <= Nav $my_app_nav
+            tab? <=> tab? \library
+```
+```typescript
+// app.view.ts
+override tab( next?: string ) { return this.Head().tab( next ) }
+// head.view.ts
+@ $mol_mem
+override tab( next?: string ) {
+    return this.$.$mol_state_arg.value( 'tab', next ) ?? 'library'
+}
+```
+
 #### NPM пакет не найден
 
 **Причина**: MAM не смог установить автоматически
