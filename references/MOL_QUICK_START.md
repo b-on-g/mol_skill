@@ -521,6 +521,51 @@ export class $my_counter extends $.$my_counter {
 }
 ```
 
+#### ⚠️ Эфемерное состояние между event-handlers — НЕ через `prop? \`
+
+Если объявить state в view.tree (`drag_id? \`, `last_pointer? +0` и т.п.) и потом читать его внутри нескольких **разных event-handlers** (`pan_start`/`pan_move`/`pan_end`) — значение **сбрасывается между событиями** в default.
+
+Причина: mol оборачивает event-handlers в `$mol_wire_async`. На КАЖДОМ событии `fiber?.destructor()` убивает fiber предыдущего вызова. Этот fiber был подписчиком на `@$mol_mem` ячейку (мы читали `this.drag_id()` внутри). Когда подписчик уничтожается, mol-реактивность ресетит cell в declared default.
+
+Симптом: первый `pan_move` видит правильное значение, второй и далее — пустую строку / дефолт.
+
+**Правило:** transient inter-event state (drag/pan/scroll/гесtures) — не клади в `view.tree` как `prop?`. Используй обычное TS-поле в `.view.ts`:
+
+```typescript
+// view.tree:
+//   $my_canvas $mol_svg_root
+//     event * pointerdown?event <=> pan_start?event null
+
+// view.ts:
+export class $my_canvas extends $.$my_canvas {
+	// Plain TS-field — НЕ реактивный, переживает все события
+	drag_id_raw = ''
+
+	// Если ВСЁ-ТАКИ нужен metод-API (типа для биндинга в view.tree),
+	// переопределяй автоген и проксируй на поле:
+	override drag_id( next?: string ) {
+		if ( next !== undefined ) this.drag_id_raw = next
+		return this.drag_id_raw
+	}
+
+	@$mol_action
+	pan_start( event?: PointerEvent ) {
+		this.drag_id( 'node_42' )  // ← переживёт следующий pan_move
+	}
+
+	@$mol_action
+	pan_move( event?: PointerEvent ) {
+		const id = this.drag_id()  // ← всегда правильно
+		if ( id ) { /* drag logic */ }
+	}
+}
+```
+
+Когда `@$mol_mem`/`prop?` нормально работают для inter-event state:
+- Если значение читает **render** (биндится в view.tree атрибут/sub) — нужна реактивность чтобы UI обновлялся
+- Если читает только сам обработчик-сеттер (типа `count` после `click`) — fiber один, нет проблемы
+- Если читают разные event-handlers — **плохо**, используй plain field
+
 ### Композиция компонентов
 
 ```tree
