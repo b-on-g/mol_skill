@@ -204,6 +204,22 @@ $my_list $mol_list
 
 `*` создает мультисвойство - один компонент на каждый элемент.
 
+**Вложенные мультисвойства пиши через `*`, а НЕ `*0`.** Когда keyed-компонент
+сам содержит вложенные keyed-подкомпоненты, внешний ключ должен быть `Name*`.
+Форма `Name*0` (с индексом-образцом) во вложенном случае приводит к тому, что
+DOM-дети не рендерятся — компонент создаётся пустым.
+
+```tree
+$my_list $mol_list
+    rows /
+        <= Row* $my_row             # ✅ Row*, не Row*0
+            title <= row_title* \
+            sub /
+                <= Info* $mol_view   # вложенный keyed рендерится
+                    sub /
+                        <= Info_text* \
+```
+
 #### Условный рендеринг
 
 ```tree
@@ -1142,6 +1158,39 @@ export class $my_data_loader extends $.$my_data_loader {
 Идеи для красивых ошибок: тонкая штриховка с прозрачностью + цветная рамка + glow + пульсирующая иконка `::before`. Полезные эмодзи: `⚠`, `💥`, `🔥`, `💀`. Главное — не блок-рекламы из 90-х, юзер мог просто потерять связь.
 
 ⚠️ Обязательно добавляй `@media (prefers-reduced-motion: reduce)` с `animation: none` — без этого ломаешь accessibility юзерам, кто отключил анимации в системе.
+
+### Мигание «идёт работа» для своих кнопок/строк
+
+`$mol_view` при **suspense** (когда обработчик или рендер висит на Promise) ставит на элемент `mol_view_error="Promise"`, и встроенный keyframes `mol_view_wait` (в `mol/view/view/view.css`, пульс opacity `.25↔.75`) мигает элементом. Именно поэтому `$mol_button_open` (Upload) **мигает** пока читает файл: его обработчик синхронно держит фибру до конца записи.
+
+Кнопка, которая запускает работу «в сторону» и сразу возвращается (`$mol_action` → `$mol_wire_async(this).do_stuff()` fire-and-forget), **не мигает** — обработчик не висит на Promise, атрибут не ставится.
+
+Чтобы дать своей кнопке/строке то же мигание по **своему** состоянию (не завязываясь на хрупкий suspense, который ещё и прячет содержимое во время загрузки), переиспользуй глобальный keyframes `mol_view_wait` в css.ts по булеву атрибуту:
+
+```typescript
+// view.tree:  attr *  \n  my_busy <= busy false
+// view.ts:    busy() { return this.status().startsWith('Качаю') }
+
+$mol_style_define($my_row, {
+    '@': {
+        my_busy: {
+            true: {
+                animation: {
+                    name: 'mol_view_wait',        // keyframes из mol/view, доступен всегда
+                    duration: '1s',
+                    iterationCount: 'infinite',
+                },
+            },
+        },
+    },
+})
+```
+
+Мигать может и вложенный элемент: `my_busy: { true: { Download_btn: { animation: {...} } } }`.
+
+Тем же приёмом показывают «данные докачиваются»: булев `syncing()` (ловит Promise от baza-чтения → `true`) → `animation: mol_view_wait`; `available===false` без syncing → статичный `opacity`. Оба реактивны: когда baza досинкает, ячейка пересчитается сама.
+
+⚠️ `timingFunction: 'steps(20, end)'` в css.ts не проходит типизацию (`Easing_function`) — просто опусти его, мигание и без steps плавное.
 
 ---
 
