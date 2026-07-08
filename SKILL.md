@@ -17,6 +17,8 @@ description: Build or modify apps with $mol/MAM and related stack. Use when the 
 - Use `references/GIPER_BAZA_ADMIN_GUIDE.md` for admin panels, roles, UI patterns, and admin CRUD flows.
 - Use `references/TAURI_SETUP.md` for desktop setup, build, and CI.
 - Use `references/MOL_POSITIONING.md` when comparing $mol to React/Vue/shadcn or discussing $mol economics, hiring, onboarding — to avoid false "медленный старт / нанять некого / редкий стек" framing.
+- Use `references/MOL_CHAT_AUTOSCROLL.md` ONLY when the task involves auto-scroll-to-bottom on new items (chat, streaming LLM output, live logs) — covers `$mol_scroll` + `scroll_top` mem-cache pitfall, the `min-height: 0` flex cascade, and the `dom_tree` override recipe. Не грузи если задача не про скролл.
+- Use `references/MOL_TESTS_ASYNC_LEAKS.md` ONLY when writing `$mol_test` tests and видишь "Not translated to X" warn'ы после теста, или другие phantom-варнинги от async-хвостов — объясняет утечки через голый `setTimeout` за пределы жизненного цикла `$` и как их избегать. Не грузи для обычной разработки, только когда пишешь тесты.
 - **ALWAYS** read `references/DIMA_STYLE.md` before writing any code — it defines the idiomatic $mol coding style (parametrized components via `*`, `@$mol_mem_key`, minimal CSS, no `.make()`).
 
 ## 3) Implement in a MAM module
