@@ -15,6 +15,10 @@ description: Build or modify apps with $mol/MAM and related stack. Use when the 
 npx view-tree-lsp locale bog/myapp/app/- --exclude=mol --update
 ```
 
+Переводчику отдают не сырой JSON, а веб-приложение
+[$yuf_localizer](https://zerkalica.github.io/yuf/#!demo=yuf_localizer_demo): один список всех ключей с поиском и метками «только по-английски /
+изменено, но не зафиксировано / устарело». Готовое выгружают и раскладывают командой выше.
+
 `--include=`/`--exclude=` фильтруют по куску пути модуля, `--update` дописывает в
 существующие файлы, `--dry` показывает план. Подробности — в `references/MOL_QUICK_START.md`,
 раздел «Локализация».
