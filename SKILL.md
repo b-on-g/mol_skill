@@ -5,6 +5,20 @@ description: Build or modify apps with $mol/MAM and related stack. Use when the 
 
 # $mol Skill Workflow
 
+## 0.1) Раскладка переводов по модулям
+
+Когда переводы приходят одним файлом на всё приложение (`<app>/-/web.locale=<lang>.json`),
+разложить их по модулям:
+
+```bash
+# из корня MAM
+npx view-tree-lsp locale bog/myapp/app/- --exclude=mol --update
+```
+
+`--include=`/`--exclude=` фильтруют по куску пути модуля, `--update` дописывает в
+существующие файлы, `--dry` показывает план. Подробности — в `references/MOL_QUICK_START.md`,
+раздел «Локализация».
+
 ## 1) Clarify the goal
 
 - Ask for the exact feature, target module path, and whether Giper Baza or Tauri is involved.
