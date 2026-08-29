@@ -19,7 +19,7 @@
 
 ## Введение
 
-**Giper Baza** (форк CRUS DB) - это распределённая peer-to-peer база данных с бесконфликтной реалтайм-синхронизацией на основе CRDT (Conflict-free Replicated Data Types).
+**Giper Baza** - это распределённая peer-to-peer база данных с бесконфликтной реалтайм-синхронизацией на основе CRDT (Conflict-free Replicated Data Types).
 
 ### Ключевые преимущества для backend:
 

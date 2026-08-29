@@ -1168,7 +1168,7 @@ export class $my_form extends $.$my_form {
 export class $my_data_loader extends $.$my_data_loader {
 	@$mol_mem
 	async data() {
-		const response = await fetch('/api/data')
+		const response = await fetch('/api/data') // но правильно $mol_fetch
 		return await response.json()
 	}
 
