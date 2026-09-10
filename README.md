@@ -1,6 +1,6 @@
 # $mol skill
 
-Skill for Codex/skills.sh that covers $mol/MAM development, view.tree/view.ts patterns, Giper Baza integration, and Tauri packaging.
+Skill for Codex/skills.sh: $mol/MAM development, view.tree, Giper Baza, Tauri.
 
 ## Install
 
@@ -8,16 +8,14 @@ Skill for Codex/skills.sh that covers $mol/MAM development, view.tree/view.ts pa
 npx skills add b-on-g/mol_skill --all -g
 ```
 
-## Usage examples
-
-- "как на моле сделать форму с двумя полями и кнопкой"
-- "$mol view.tree пример списка"
-- "MAM структура модуля и index.html"
-- "Giper Baza CRUD и роли"
-- "Tauri + $mol сборка"
-
 ## Contents
 
-- `SKILL.md`
-- `references/` with $mol and Giper Baza guides
-- `agents/openai.yaml`
+- `SKILL.md` workflow and module layout
+- `references/STYLE.md` code style, css.ts vs raw css, theme, commits
+- `references/VIEW_TREE.md` syntax, bindings, reactivity, silent pitfalls
+- `references/COMPONENTS.md` verified catalog of `mol/` and `bog/` components
+- `references/TESTS.md` user-flow tests via view methods, DOM tests, mocks
+- `references/GIPER_BAZA.md` schema, CRUD, rights, sync, fibers
+- `references/TAURI_SETUP.md` desktop and mobile
+- `references/MOL_CHAT_AUTOSCROLL.md` scroll-to-bottom recipe
+- `references/MOL_POSITIONING.md` how to compare $mol with React/Vue/shadcn

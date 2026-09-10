@@ -3,129 +3,117 @@ name: mol
 description: Build or modify apps with $mol/MAM and related stack. Use when the user asks how to do something in $mol (view.tree, view.ts, css.ts), how to structure a MAM module, how to connect Giper Baza, how to build/admin apps on Giper Baza, or how to package/run with Tauri. Triggers include queries like "как на моле сделать …", "$mol view.tree", "MAM структура", "Giper Baza CRUD/roles/auth", "админка на Giper Baza", or "Tauri + $mol".
 ---
 
-# $mol Skill Workflow
+# $mol / MAM
 
-## 0.1) Раскладка переводов по модулям
+Грузи из `references/` только то, что нужно задаче.
 
-Когда переводы приходят одним файлом на всё приложение (`<app>/-/web.locale=<lang>.json`),
-разложить их по модулям:
+| Файл | Когда |
+| --- | --- |
+| `STYLE.md` | Перед любым кодом. Всегда. |
+| `VIEW_TREE.md` | Синтаксис дерева, биндинги, реактивность, грабли |
+| `COMPONENTS.md` | Прежде чем писать свой компонент |
+| `TESTS.md` | Когда пишешь или чинишь тесты |
+| `GIPER_BAZA.md` | Данные, права, синк |
+| `TAURI_SETUP.md` | Десктоп и мобилки |
+| `MOL_CHAT_AUTOSCROLL.md` | Только автоскролл к новым элементам |
+| `MOL_POSITIONING.md` | Только сравнение $mol с React/Vue/shadcn |
+
+## Порядок работы
+
+1. Уточни модуль, нужна ли Giper Baza и Tauri. Если запрос размытый, предложи 2–3 конкретных варианта.
+2. **Найди готовое.** В `mol/` 246 модулей, в `bog/` ещё пара десятков. Перед своим компонентом:
+
+   ```bash
+   ls mol | grep -i <слово>
+   grep -rl '<свойство>' mol/*/*.view.tree bog/*/*/*.view.tree
+   ```
+
+   В $mol любое свойство любого вложенного компонента переопределяется строкой в view.tree. Форкать и копировать не нужно.
+3. **Выдели общее.** Повторяющийся кусок дерева = отдельный компонент в своей папке рядом с `app/`, не внутри. Подпапка внутри `app/` тянет всё приложение к тому, кто её заимствует.
+4. Пиши по `STYLE.md`: snake_case, без комментариев, дерево вместо TS, стили только для отклонений.
+5. Тесты пиши вместе с фичей: сценарий пользователя через методы вида, см. `TESTS.md`.
+6. Сборку не запускай, если не просили. После сборки смотри `<модуль>/-/web.audit.js` и чини всё.
+7. Коммить сам: `$bog_myapp_part: что изменилось`, см. `STYLE.md`.
+
+## Файлы модуля
+
+```
+bog/myapp/app/
+  index.html
+  app.view.tree      разметка и биндинги
+  app.view.ts        логика, только если дерева не хватило
+  app.view.css.ts    стили, только отклонения от темы
+  app.view.css       raw CSS: @keyframes, content, значения css-переменных
+  app.test.ts        тесты
+  app.meta.tree      мета, если нужна
+```
+
+`index.html`:
+
+```html
+<!doctype html>
+<html mol_view_root>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+	</head>
+	<body mol_view_root>
+		<div mol_view_root="$bog_myapp_app"></div>
+		<script src="web.js"></script>
+	</body>
+</html>
+```
+
+Имя класса = путь: `$bog_myapp_app` живёт в `bog/myapp/app/`. Подчёркивание всегда папка, поэтому имена папок без `_`. Короткое глобально уникальное имя работает везде: в коде, в CSS-атрибуте, в коммите.
+
+## Новый проект
 
 ```bash
-# из корня MAM
+npm create view-tree-lsp@latest bog/myapp -- --no-docker --no-tauri
+```
+
+Флаги `--no-docker`, `--no-baza`, `--no-tauri`. Всегда предлагай это вместо ручного создания файлов.
+
+## Локализация
+
+`@ \Текст` в дереве попадает в `<модуль>/-view.tree/*.locale=en.json`. Переводы кладутся рядом: `<модуль>/<имя>.locale=<lang>.json`, ключ = полное имя свойства. Один файл на всё приложение разложить по модулям:
+
+```bash
 npx view-tree-lsp locale bog/myapp/app/- --exclude=mol --update
 ```
 
-Переводчику отдают не сырой JSON, а веб-приложение
-[$yuf_localizer](https://zerkalica.github.io/yuf/#!demo=yuf_localizer_demo): один список всех ключей с поиском и метками «только по-английски /
-изменено, но не зафиксировано / устарело». Готовое выгружают и раскладывают командой выше.
+`--include`/`--exclude` по куску пути, `--update` дописывает, `--dry` показывает план. Переводчику удобнее [$yuf_localizer](https://zerkalica.github.io/yuf/#!demo=yuf_localizer_demo).
 
-`--include=`/`--exclude=` фильтруют по куску пути модуля, `--update` дописывает в
-существующие файлы, `--dry` показывает план. Подробности — в `references/MOL_QUICK_START.md`,
-раздел «Локализация».
+## NPM-пакеты
 
-## 1) Clarify the goal
+`require('pkg')` внутри метода, MAM установит сам. Бандлится весь пакет. Для тяжёлого `$mol_import.script(url)` / `$mol_import.module(url)`. Ручной `package.json` в модуле мержится с автоматическим.
 
-- Ask for the exact feature, target module path, and whether Giper Baza or Tauri is involved.
-- If the request is vague ("сделать что угодно"), propose 2-3 concrete options and ask to choose.
+## SEO
 
-## 2) Pick the right reference
-
-- Use `references/MOL_QUICK_START.md` for core $mol/MAM structure, view.tree syntax, components, best practices, and debugging.
-- Use `references/MOL_GIPER_BAZA_GUIDE.md` for data modeling, auth/roles, CRUD, sync, and backend-style patterns.
-- Use `references/GIPER_BAZA_ADMIN_GUIDE.md` for admin panels, roles, UI patterns, and admin CRUD flows.
-- Use `references/TAURI_SETUP.md` for desktop setup, build, and CI.
-- Use `references/MOL_POSITIONING.md` when comparing $mol to React/Vue/shadcn or discussing $mol economics, hiring, onboarding — to avoid false "медленный старт / нанять некого / редкий стек" framing.
-- Use `references/MOL_CHAT_AUTOSCROLL.md` ONLY when the task involves auto-scroll-to-bottom on new items (chat, streaming LLM output, live logs) — covers `$mol_scroll` + `scroll_top` mem-cache pitfall, the `min-height: 0` flex cascade, and the `dom_tree` override recipe. Не грузи если задача не про скролл.
-- Use `references/MOL_TESTS_ASYNC_LEAKS.md` ONLY when writing `$mol_test` tests and видишь "Not translated to X" warn'ы после теста, или другие phantom-варнинги от async-хвостов — объясняет утечки через голый `setTimeout` за пределы жизненного цикла `$` и как их избегать. Не грузи для обычной разработки, только когда пишешь тесты.
-- **ALWAYS** read `references/DIMA_STYLE.md` before writing any code — it defines the idiomatic $mol coding style (parametrized components via `*`, `@$mol_mem_key`, minimal CSS, no `.make()`).
-
-## 3) Implement in a MAM module
-
-- Follow the module structure and naming rules from `MOL_QUICK_START.md`.
-- Create or update:
-    - `index.html` in the module root
-    - `*.view.tree` for layout
-    - `*.view.ts` for logic (use `@$mol_mem`, `@$mol_action`)
-    - `*.view.css.ts` for styles
-    - `*.meta.tree` for meta config when needed
-- Use `view.tree` bindings correctly:
-    - `<=` for one-way, `<=>` for two-way
-    - `*` for list/collection properties
-    - `null` to remove nodes conditionally
-
-## 4) Data with Giper Baza (if needed)
-
-- Model data with `class ... extends $giper_baza_entity.with({ ... })`.
-- Keep CRUD in `@$mol_mem` / `@$mol_action` methods.
-- Use presets/roles if data must be shared across lands or users.
-- Follow auth/roles guidance from the Giper Baza references.
-
-## 5) Validate & debug
-
-- Don't run the build unless you're asked to.
-- Always check `yourproject/-/web.audit.js` after build; fix all warnings/errors.
-- Add tests in `*.test.ts` when logic is non-trivial.
-
-## 6) Tauri (if requested)
-
-- Follow `references/TAURI_SETUP.md` for setup, dev, and build steps.
-- Ensure `frontendDist` points to the built `-/` folder.
-- For CI builds use `b-on-g/tauri-mol-workflow-template`:
-
-```yaml
-# As action (single platform, use matrix for multi-platform)
-- uses: b-on-g/tauri-mol-workflow-template@master
-  with:
-    module: "appname/app"          # MAM module path
-    platform: desktop              # desktop | android | ios
-
-# As reusable workflow (all platforms out of the box)
-jobs:
-  tauri:
-    uses: b-on-g/tauri-mol-workflow-template/.github/workflows/tauri_reusable.yml@master
-    with:
-      mam_module_path: appname/app
-    secrets: inherit
-```
-
-## 7) SEO / Prerendering (if requested)
-
-- $mol SPAs need prerendering for search engine indexing — Googlebot sees empty `<div>` without it.
-- Use `b-on-g/mol-prerender-action` after `mam_build`, before deploy:
+SPA без пререндера индексируется пустым. После `mam_build`, перед деплоем:
 
 ```yaml
 - uses: b-on-g/mol-prerender-action@main
   with:
-    base-url: "https://example.github.io/app/"  # prod URL for sitemap
-    screens: |                                    # screen IDs, one per line
+    base-url: "https://example.github.io/app/"
+    screens: |
       campaign
       shop
-      leaderboard
 ```
 
-- Auto-detects build dir and root selector from `index.html`.
-- Generates static HTML per screen, `sitemap.xml`, and `robots.txt`.
-- `route-format`: `#!` (default) or `?` — matches `$mol_state_arg` format.
-- Title and description extracted from each rendered page automatically.
+Генерит HTML на экран, `sitemap.xml`, `robots.txt`. `route-format`: `#!` или `?`.
 
-## 8) Scaffolding new project
+## Tauri в CI
 
-- Use the official CLI to scaffold a new $mol app instead of creating files manually:
-
-```bash
-npm create view-tree-lsp@latest  bog/myapp -- --no-docker --no-tauri
+```yaml
+- uses: b-on-g/tauri-mol-workflow-template@master
+  with:
+    module: "bog/myapp/app"
+    platform: desktop
 ```
 
-- The path argument is the MAM module path for the new app.
-- Optional flags to exclude features:
-    - `--no-docker` — skip Docker config
-    - `--no-baza` — skip Giper Baza setup
-    - `--no-tauri` — skip Tauri desktop setup
-- Included by default: App skeleton, Offline support, Themes, CI/CD, Prerender, Assets, Giper Baza, Tauri, Docker.
-- Always recommend this CLI when a user is starting a new project from scratch.
+Или reusable workflow `tauri_reusable.yml@master` с `mam_module_path`. Остальное в `TAURI_SETUP.md`.
 
-## Output expectations
+## Ответ пользователю
 
-- Provide minimal, runnable edits in the target module.
-- If the user asks for examples, include a small `view.tree` + `view.ts` pair.
-- Prefer concrete file paths and exact command lines.
+Минимальные рабочие правки в целевом модуле, точные пути и команды. Пример = пара `view.tree` + `view.ts`.
