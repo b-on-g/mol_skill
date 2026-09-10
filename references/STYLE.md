@@ -195,15 +195,17 @@ plugins /
 		theme_dark \$mol_theme_calm_dark
 ```
 
-Пресеты `bog/builderui` включаются атрибутами корня, значения переменных лежат в `bog/builderui/theme.css`:
+Пресеты `bog/builderui` включаются тем же способом, плагином `$bog_builderui_skin`. Он вешает на корень атрибуты `bog_builderui_*`, значения переменных лежат в `bog/builderui/theme.css`. Приложение задаёт только отличия от дефолтов:
 
 ```tree
-attr *
-	^
-	bog_builderui_lights <= lights \system
-	bog_builderui_base \zinc
-	bog_builderui_theme \sky
+plugins /
+	<= Skin $bog_builderui_skin
+		lights <= lights
+		base \zinc
+		font_head \eb-garamond
 ```
+
+Свойства: `lights` (`system`/`light`/`dark`), `base`, `accent`, `chart`, `radius`, `font_body`, `font_head`. `lights` обычно считается от `$bog_theme_auto`: `theme.mode() === 'system' ? 'system' : theme.is_light_now() ? 'light' : 'dark'`. `attr *` с `^` и перечислением атрибутов на корне больше не нужен.
 
 Своя тема: css-переменные в raw `.css` под своим селектором, компоненты читают `var(--...)` через `$mol_style_prop`. Логику темы в TS не тащить, если её умеет CSS.
 

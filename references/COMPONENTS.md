@@ -85,10 +85,11 @@
 | Класс | Что |
 | --- | --- |
 | `$bog_builderui_*` | shadcn-подобный набор: `button` с `variant`, `card`, `dialog` с `showed?`, `tabs`, `toast` с `kind`, `field`, `select`, `badge`, `alert`, `menu`, `progress`, `slider`, `skeleton`, `tooltip`, `breadcrumbs`, `gallery`, `chart` |
+| `$bog_builderui_skin` | плагин пресетов: `lights`, `base`, `accent`, `chart`, `radius`, шрифты |
 | `$bog_builderui_router` | path-роутинг вместо `#!`, активировать в `static {}` приложения |
 | `$bog_theme_*` | `auto`, `toggle`, `picker` |
 | `$bog_tooltip`, `$bog_popup`, `$bog_favicon` | по имени |
 | `$bog_kit_*` | пейджер, контекст |
 | `$bog_rec_*` | запись и реплей сессий, фаззер для тестов |
 
-Пресеты `builderui` включаются атрибутами на корне: `bog_builderui_lights`, `bog_builderui_base`, `bog_builderui_theme`, `bog_builderui_radius`, `bog_builderui_font_body`, `bog_builderui_font_head`. Значения в `bog/builderui/theme.css`.
+Пресеты `builderui` включаются плагином `$bog_builderui_skin` в `plugins /` корня: свойства `lights`, `base`, `accent`, `chart`, `radius`, `font_body`, `font_head`, у всех есть дефолты. Значения в `bog/builderui/theme.css`.
