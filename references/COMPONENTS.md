@@ -1,6 +1,37 @@
 # Готовые компоненты
 
-Сверено с `mol/*/*.view.tree`. Перед тем как писать своё: `ls mol | grep -i <слово>` и прочитать дерево кандидата, там все свойства. Любое свойство любого вложенного под-вида переопределяется строкой в дереве.
+## Как читать исходники
+
+Весь `mol/` лежит в MAM рядом с твоим кодом, не в `node_modules` и не в бандле. Имя класса это путь: `$mol_string` живёт в `mol/string/`, `$mol_button_major` в `mol/button/major/`. Подчёркивание = папка.
+
+`<имя>.view.tree` компонента это полный список его свойств с дефолтами. Тип виден по значению: `\` строка, `/` список, `*` словарь, число, `null`, `true`/`false`, `<= Name $class` под-вид, `?` изменяемое. Из того же дерева сгенерирован типизированный интерфейс `mol/<x>/-view.tree/<x>.view.tree.d.ts`. Рядом `demo/` с рабочими примерами и `readme.md`: открыть демо, найти похожее, скопировать строку.
+
+```bash
+ls mol | grep -i <слово>
+cat mol/string/string.view.tree
+grep -rl '<свойство>' mol/*/*.view.tree
+```
+
+Кейс «placeholder у инпута»: `ls mol | grep -i string`, потом `cat mol/string/string.view.tree`, в нём строка `placeholder <= hint_visible <= hint \`. Свойство называется `hint`, в своём дереве `hint \Search`. `attr *` для этого не нужен, он для настоящих DOM-атрибутов, которых в дереве компонента нет.
+
+Человек спрашивает словами React, Vue и HTML, в $mol это:
+
+| Спрашивают | В $mol |
+| --- | --- |
+| placeholder | `hint \Search` |
+| disabled | `enabled false` |
+| class | не нужен: у каждого вида уже есть атрибут `[bog_myapp_row]`, стили в `.view.css.ts`, тег через `dom_name` |
+| onClick | `click? <=> handler? null` |
+| `<input type>` | `type \password` |
+| v-model | `value? <=> field? \` |
+| children, slot | `sub /` |
+| computed | метод с `@ $mol_mem`, читающий другие методы |
+| watch | не нужен, побочный эффект это `@ $mol_action` по событию |
+| onMounted, useEffect(fetch) | хука нет, читай свойство: `this.$.$mol_fetch.json( uri )` внутри `@ $mol_mem` |
+
+## Каталог
+
+Сверено с `mol/*/*.view.tree`. Перед тем как писать своё, прочитать дерево кандидата, там все свойства. Любое свойство любого вложенного под-вида переопределяется строкой в дереве.
 
 ## Разметка
 
