@@ -73,21 +73,24 @@ $mol_test_mocks.push( $ => {
 } )
 ```
 
-Сеть тем же способом. Вид зовёт `this.$.$mol_fetch.json( uri )`, тест подставляет наследника со статическим `json`:
+`$mol_test_mocks` общий на весь тестовый бандл: каждый тест получает `Object.create( $$ )` и прогон всех моков подряд, в том числе из чужих модулей. Поэтому там живут только общие подмены без данных, как у самого `mol/`: `$mol_state_local_mock` хранит что дали, `$mol_locale_mock` отдаёт пустой словарь, `fetch` и `XMLHttpRequest` запрещены и бросают `fetch is forbidden in tests`.
+
+Данные под конкретный тест подменяются внутри теста, контекст там уже свой. Вид зовёт `this.$.$mol_fetch.json( uri )`, тест подставляет наследника со статическим `json`:
 
 ```ts
-$mol_test_mocks.push( $ => {
-	class $mol_fetch_mock extends $mol_fetch {
+'user names come from the response'( $ ) {
+	$.$mol_fetch = class extends $.$mol_fetch {
 		static override json( input: RequestInfo ) {
-			if( String( input ) === 'https://api.example.com/users' ) return [ { id: 1, name: 'Ann' } ]
+			if( String( input ).endsWith( '/users' ) ) return [ { id: 1, name: 'Ann' } ]
 			return $mol_fail( new Error( 'network in a test: ' + input ) )
 		}
 	}
-	$.$mol_fetch = $mol_fetch_mock
-} )
+	const app = $my_users.make({ $ })
+	$mol_assert_like( app.user_names(), [ 'Ann' ] )
+},
 ```
 
-Именно поэтому сервисы вызываются как `this.$.$mol_fetch`, а не `$mol_fetch`: подмена через `$` достаёт только вызовы `this.$.X`. Голый `fetch` в тестах запрещён и бросает `fetch is forbidden in tests`. Глобалы (`setTimeout`, `Date`) подменять на `globalThis`. Таймеры в тестах замоканы, время прокручивается `$mol_after_mock_warp()`.
+Именно поэтому сервисы вызываются как `this.$.$mol_fetch`, а не `$mol_fetch`: подмена через `$` достаёт только вызовы `this.$.X`. Глобалы (`setTimeout`, `Date`) подменять на `globalThis`. Таймеры в тестах замоканы, время прокручивается `$mol_after_mock_warp()`.
 
 ## Тишина = падение
 
